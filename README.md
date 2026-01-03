@@ -1,6 +1,6 @@
 # Anamn
 
-**Anamn** is a local-first, terminal-native second brain.
+**Anamn** is a local-first, desktop-native second brain.
 
 It treats Markdown files as memory, links as recall, and structure as thought.
 There is no cloud, no proprietary format, and no abstraction between you and your notes.
@@ -28,7 +28,7 @@ It respects the filesystem and makes its behavior explicit.
 
 ## What Anamn Is
 
-- A **local-first Electron app** (Linux and macOS first)
+- A **local-first Electron desktop app** (Linux and macOS)
 - A **single-user knowledge system**
 - A **Markdown-native editor** with Vim keybindings
 - A **link-driven knowledge graph** (derived, not stored)
@@ -90,6 +90,7 @@ Anamn maintains an implicit knowledge graph:
 - **Backlinks**: always derived, never stored
 
 The graph is deterministic and rebuildable at any time.
+A force-directed visualization is available in the right panel.
 
 ---
 
@@ -97,9 +98,10 @@ The graph is deterministic and rebuildable at any time.
 
 Anamn uses a Markdown editor with Vim keybindings.
 
-- Modal editing
+- Modal editing (view/edit modes)
 - Keyboard-first workflows
 - Minimal UI, maximum focus
+- Link autocomplete with `[[`
 
 The goal is not to perfectly replicate Vim or LazyVim.
 The goal is to feel fast, predictable, and comfortable for Vim users.
@@ -212,24 +214,42 @@ When the sidebar note list is focused:
 
 ---
 
-## Architecture (High Level)
+## Architecture
 
-Anamn is split into two major parts:
+Anamn is an Electron + React + TypeScript application with a clear process boundary.
 
-### Electron Main Process
-- Workspace discovery and configuration
-- File reading and atomic writing
-- File watching and change detection
-- Note indexing and link parsing
-- IPC API exposed to the renderer
+### Electron Main Process (`electron/`)
+- App lifecycle and window management
+- All filesystem I/O (notes are never accessed from renderer)
+- Atomic file writes (temp file → rename)
+- Workspace configuration and persistence
+- IPC handlers for notes, workspace, and config
 
-### React Renderer
-- File tree and navigation
-- Editor panes and tabs
-- Link navigation
-- Search and derived views
+### React Renderer (`src/`)
+- Single-page UI with sidebar, editor, and right panel
+- Communicates exclusively via typed IPC (`window.api`)
+- No direct Node.js or filesystem access
+- Markdown rendering with clickable wiki links
+
+### Shared (`shared/`)
+- Type definitions shared across processes
+- Pure functions (link parsing, utilities)
 
 All state that can be derived from files is treated as disposable.
+
+---
+
+## Getting Started
+
+```bash
+npm install          # Install dependencies
+npm run dev          # Start dev server + Electron
+npm run build        # Build for production
+npm run typecheck    # Type-check all code
+```
+
+On first launch, Anamn will prompt you to select a workspace folder.
+All notes are stored as `.md` files in that folder.
 
 ---
 
