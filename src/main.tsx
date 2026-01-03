@@ -557,7 +557,10 @@ function App() {
               const newEnd = getLineEnd(currentEnd);
               textarea.setSelectionRange(textarea.selectionStart, newEnd);
             } else {
-              const head = textarea.selectionEnd;
+              // Determine head position based on anchor
+              const head = textarea.selectionStart === selection.anchor
+                ? textarea.selectionEnd
+                : textarea.selectionStart;
               const lineStart = getLineStart(head);
               const col = head - lineStart;
               const nextLineStart = getLineEnd(head);
@@ -582,7 +585,10 @@ function App() {
                 textarea.setSelectionRange(prevLineStart, textarea.selectionEnd);
               }
             } else {
-              const head = textarea.selectionStart;
+              // Determine head position based on anchor
+              const head = textarea.selectionStart === selection.anchor
+                ? textarea.selectionEnd
+                : textarea.selectionStart;
               const lineStart = getLineStart(head);
               if (lineStart > 0) {
                 const col = head - lineStart;
