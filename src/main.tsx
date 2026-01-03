@@ -509,7 +509,126 @@ function App() {
         return;
       }
 
-      // Skip other shortcuts when in input
+      // Selection keybindings (must be checked before skipping input shortcuts)
+      if (selectedNote && viewMode === "edit" && selection) {
+        const textarea = textareaRef.current;
+        if (textarea) {
+          // Helper to get line boundaries
+          const getLineStart = (pos: number) => {
+            const lastNewline = content.lastIndexOf("\n", pos - 1);
+            return lastNewline === -1 ? 0 : lastNewline + 1;
+          };
+          const getLineEnd = (pos: number) => {
+            const nextNewline = content.indexOf("\n", pos);
+            return nextNewline === -1 ? content.length : nextNewline + 1;
+          };
+
+          // "h" - move selection left
+          if (e.key === "h" && selection.type === "char") {
+            e.preventDefault();
+            const head = textarea.selectionStart === selection.anchor
+              ? textarea.selectionEnd
+              : textarea.selectionStart;
+            const newHead = Math.max(0, head - 1);
+            const start = Math.min(selection.anchor, newHead);
+            const end = Math.max(selection.anchor, newHead);
+            textarea.setSelectionRange(start, Math.max(end, start + 1));
+            return;
+          }
+
+          // "l" - move selection right
+          if (e.key === "l" && selection.type === "char") {
+            e.preventDefault();
+            const head = textarea.selectionEnd === selection.anchor
+              ? textarea.selectionStart
+              : textarea.selectionEnd;
+            const newHead = Math.min(content.length, head + 1);
+            const start = Math.min(selection.anchor, newHead);
+            const end = Math.max(selection.anchor, newHead);
+            textarea.setSelectionRange(start, end);
+            return;
+          }
+
+          // "j" - move selection down
+          if (e.key === "j") {
+            e.preventDefault();
+            if (selection.type === "line") {
+              const currentEnd = textarea.selectionEnd;
+              const newEnd = getLineEnd(currentEnd);
+              textarea.setSelectionRange(textarea.selectionStart, newEnd);
+            } else {
+              const head = textarea.selectionEnd;
+              const lineStart = getLineStart(head);
+              const col = head - lineStart;
+              const nextLineStart = getLineEnd(head);
+              if (nextLineStart < content.length) {
+                const nextLineEnd = getLineEnd(nextLineStart);
+                const newHead = Math.min(nextLineStart + col, nextLineEnd - 1);
+                const start = Math.min(selection.anchor, newHead);
+                const end = Math.max(selection.anchor, newHead);
+                textarea.setSelectionRange(start, end);
+              }
+            }
+            return;
+          }
+
+          // "k" - move selection up
+          if (e.key === "k") {
+            e.preventDefault();
+            if (selection.type === "line") {
+              const currentStart = textarea.selectionStart;
+              if (currentStart > 0) {
+                const prevLineStart = getLineStart(currentStart - 1);
+                textarea.setSelectionRange(prevLineStart, textarea.selectionEnd);
+              }
+            } else {
+              const head = textarea.selectionStart;
+              const lineStart = getLineStart(head);
+              if (lineStart > 0) {
+                const col = head - lineStart;
+                const prevLineStart = getLineStart(lineStart - 1);
+                const prevLineEnd = lineStart - 1;
+                const newHead = Math.min(prevLineStart + col, prevLineEnd);
+                const start = Math.min(selection.anchor, newHead);
+                const end = Math.max(selection.anchor, newHead);
+                textarea.setSelectionRange(start, end);
+              }
+            }
+            return;
+          }
+
+          // "y" - yank (copy) selection
+          if (e.key === "y") {
+            e.preventDefault();
+            const selected = content.slice(textarea.selectionStart, textarea.selectionEnd);
+            navigator.clipboard.writeText(selected);
+            setSelection(null);
+            setViewMode("rendered");
+            return;
+          }
+
+          // "d" - delete selection
+          if (e.key === "d") {
+            e.preventDefault();
+            const before = content.slice(0, textarea.selectionStart);
+            const after = content.slice(textarea.selectionEnd);
+            setContent(before + after);
+            setSelection(null);
+            setViewMode("rendered");
+            return;
+          }
+
+          // "Escape" - cancel selection
+          if (e.key === "Escape") {
+            e.preventDefault();
+            setSelection(null);
+            setViewMode("rendered");
+            return;
+          }
+        }
+      }
+
+      // Skip other shortcuts when in input (but selection handlers above take priority)
       if (isInput) return;
 
       if (matchesShortcut(e, shortcuts.newNote)) {
@@ -627,14 +746,14 @@ function App() {
         // "j" - scroll down
         if (e.key === "j") {
           e.preventDefault();
-          if (renderedView) renderedView.scrollTop += 40;
+          renderedView?.scrollBy({ top: 40 });
           return;
         }
 
         // "k" - scroll up
         if (e.key === "k") {
           e.preventDefault();
-          if (renderedView) renderedView.scrollTop -= 40;
+          renderedView?.scrollBy({ top: -40 });
           return;
         }
 
@@ -657,14 +776,14 @@ function App() {
         // Ctrl+d - half page down
         if (e.key === "d" && e.ctrlKey) {
           e.preventDefault();
-          if (renderedView) renderedView.scrollTop += renderedView.clientHeight / 2;
+          if (renderedView) renderedView.scrollBy({ top: renderedView.clientHeight / 2 });
           return;
         }
 
         // Ctrl+u - half page up
         if (e.key === "u" && e.ctrlKey) {
           e.preventDefault();
-          if (renderedView) renderedView.scrollTop -= renderedView.clientHeight / 2;
+          if (renderedView) renderedView.scrollBy({ top: -renderedView.clientHeight / 2 });
           return;
         }
 
@@ -734,124 +853,6 @@ function App() {
         }
       }
 
-      // Selection keybindings (in edit mode with active selection)
-      if (selectedNote && viewMode === "edit" && selection) {
-        const textarea = textareaRef.current;
-        if (!textarea) return;
-
-        // Helper to get line boundaries
-        const getLineStart = (pos: number) => {
-          const lastNewline = content.lastIndexOf("\n", pos - 1);
-          return lastNewline === -1 ? 0 : lastNewline + 1;
-        };
-        const getLineEnd = (pos: number) => {
-          const nextNewline = content.indexOf("\n", pos);
-          return nextNewline === -1 ? content.length : nextNewline + 1;
-        };
-
-        // "h" - move selection left
-        if (e.key === "h" && selection.type === "char") {
-          e.preventDefault();
-          const head = textarea.selectionStart === selection.anchor
-            ? textarea.selectionEnd
-            : textarea.selectionStart;
-          const newHead = Math.max(0, head - 1);
-          const start = Math.min(selection.anchor, newHead);
-          const end = Math.max(selection.anchor, newHead);
-          textarea.setSelectionRange(start, Math.max(end, start + 1));
-          return;
-        }
-
-        // "l" - move selection right
-        if (e.key === "l" && selection.type === "char") {
-          e.preventDefault();
-          const head = textarea.selectionEnd === selection.anchor
-            ? textarea.selectionStart
-            : textarea.selectionEnd;
-          const newHead = Math.min(content.length, head + 1);
-          const start = Math.min(selection.anchor, newHead);
-          const end = Math.max(selection.anchor, newHead);
-          textarea.setSelectionRange(start, end);
-          return;
-        }
-
-        // "j" - move selection down
-        if (e.key === "j") {
-          e.preventDefault();
-          if (selection.type === "line") {
-            const currentEnd = textarea.selectionEnd;
-            const newEnd = getLineEnd(currentEnd);
-            textarea.setSelectionRange(textarea.selectionStart, newEnd);
-          } else {
-            const head = textarea.selectionEnd;
-            const lineStart = getLineStart(head);
-            const col = head - lineStart;
-            const nextLineStart = getLineEnd(head);
-            if (nextLineStart < content.length) {
-              const nextLineEnd = getLineEnd(nextLineStart);
-              const newHead = Math.min(nextLineStart + col, nextLineEnd - 1);
-              const start = Math.min(selection.anchor, newHead);
-              const end = Math.max(selection.anchor, newHead);
-              textarea.setSelectionRange(start, end);
-            }
-          }
-          return;
-        }
-
-        // "k" - move selection up
-        if (e.key === "k") {
-          e.preventDefault();
-          if (selection.type === "line") {
-            const currentStart = textarea.selectionStart;
-            if (currentStart > 0) {
-              const prevLineStart = getLineStart(currentStart - 1);
-              textarea.setSelectionRange(prevLineStart, textarea.selectionEnd);
-            }
-          } else {
-            const head = textarea.selectionStart;
-            const lineStart = getLineStart(head);
-            if (lineStart > 0) {
-              const col = head - lineStart;
-              const prevLineStart = getLineStart(lineStart - 1);
-              const prevLineEnd = lineStart - 1;
-              const newHead = Math.min(prevLineStart + col, prevLineEnd);
-              const start = Math.min(selection.anchor, newHead);
-              const end = Math.max(selection.anchor, newHead);
-              textarea.setSelectionRange(start, end);
-            }
-          }
-          return;
-        }
-
-        // "y" - yank (copy) selection
-        if (e.key === "y") {
-          e.preventDefault();
-          const selected = content.slice(textarea.selectionStart, textarea.selectionEnd);
-          navigator.clipboard.writeText(selected);
-          setSelection(null);
-          setViewMode("rendered");
-          return;
-        }
-
-        // "d" - delete selection
-        if (e.key === "d") {
-          e.preventDefault();
-          const before = content.slice(0, textarea.selectionStart);
-          const after = content.slice(textarea.selectionEnd);
-          setContent(before + after);
-          setSelection(null);
-          setViewMode("rendered");
-          return;
-        }
-
-        // "Escape" - cancel selection
-        if (e.key === "Escape") {
-          e.preventDefault();
-          setSelection(null);
-          setViewMode("rendered");
-          return;
-        }
-      }
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -1636,12 +1637,6 @@ function App() {
                 </span>
               )}
               <div style={styles.editorActions}>
-                <span style={{
-                  ...styles.modeIndicator,
-                  background: selection ? "#8b5cf6" : viewMode === "edit" ? "#22c55e" : "#3b82f6",
-                }}>
-                  {selection?.type === "line" ? "SELECT LINE" : selection?.type === "char" ? "SELECT" : viewMode === "edit" ? "INSERT" : "NORMAL"}
-                </span>
                 <button
                   onClick={handleDeleteNote}
                   style={styles.deleteButton}
@@ -2289,15 +2284,6 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: "14px",
     padding: "0.25rem 0.5rem",
     opacity: 0.6,
-  },
-  modeIndicator: {
-    padding: "0.25rem 0.5rem",
-    borderRadius: "4px",
-    fontSize: "11px",
-    fontWeight: "bold",
-    color: "#fff",
-    textTransform: "uppercase",
-    letterSpacing: "0.5px",
   },
   contextMenu: {
     position: "fixed",
