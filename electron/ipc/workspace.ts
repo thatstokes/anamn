@@ -1,5 +1,6 @@
 import { ipcMain, dialog, BrowserWindow } from "electron";
 import { loadConfig, saveConfig } from "../config.js";
+import { startWatcher, stopWatcher } from "./watcher.js";
 
 let workspacePath: string | null = null;
 
@@ -7,6 +8,8 @@ export async function initWorkspace(): Promise<void> {
   const config = await loadConfig();
   if (config.notes_dir) {
     workspacePath = config.notes_dir;
+    // Start watching the workspace
+    startWatcher(workspacePath);
   }
 }
 
@@ -34,6 +37,10 @@ export function registerWorkspaceHandlers() {
     if (workspacePath) {
       const currentConfig = await loadConfig();
       await saveConfig({ ...currentConfig, notes_dir: workspacePath });
+      // Start watching the new workspace
+      startWatcher(workspacePath);
+    } else {
+      stopWatcher();
     }
 
     return workspacePath;

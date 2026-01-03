@@ -2,6 +2,7 @@ import { ipcMain } from "electron";
 import fs from "fs/promises";
 import path from "path";
 import { getWorkspacePath } from "./workspace.js";
+import { markFileWritten } from "./watcher.js";
 import { getUniqueLinks } from "../../shared/links.js";
 import type { Note, SearchResult } from "../../shared/types.js";
 
@@ -53,6 +54,7 @@ export function registerNotesHandlers() {
       const tempPath = `${resolved}.${Date.now()}.tmp`;
       await fs.writeFile(tempPath, content, "utf-8");
       await fs.rename(tempPath, resolved);
+      markFileWritten(resolved);
     }
   );
 
@@ -75,6 +77,7 @@ export function registerNotesHandlers() {
     const tempPath = `${notePath}.${Date.now()}.tmp`;
     await fs.writeFile(tempPath, "", "utf-8");
     await fs.rename(tempPath, notePath);
+    markFileWritten(notePath);
 
     return { path: notePath, title };
   });
@@ -88,6 +91,7 @@ export function registerNotesHandlers() {
       throw new Error("Path outside workspace");
     }
 
+    markFileWritten(resolved);
     await fs.unlink(resolved);
   });
 
@@ -114,6 +118,8 @@ export function registerNotesHandlers() {
       }
 
       // Rename the file
+      markFileWritten(resolved);
+      markFileWritten(newPath);
       await fs.rename(resolved, newPath);
 
       // Update all notes that link to the old title
@@ -131,6 +137,7 @@ export function registerNotesHandlers() {
             const tempPath = `${filePath}.${Date.now()}.tmp`;
             await fs.writeFile(tempPath, updatedContent, "utf-8");
             await fs.rename(tempPath, filePath);
+            markFileWritten(filePath);
           }
         }
       }

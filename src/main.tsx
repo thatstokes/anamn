@@ -355,6 +355,58 @@ function App() {
     }
   }, [workspace]);
 
+  // Listen for file system changes
+  useEffect(() => {
+    // Handle new file added externally
+    const unsubAdd = window.api.watcher.onFileAdded((event) => {
+      setNotes((prev) => {
+        // Don't add if already exists
+        if (prev.some((n) => n.path === event.path)) return prev;
+        return [...prev, { path: event.path, title: event.title }].sort((a, b) =>
+          a.title.localeCompare(b.title)
+        );
+      });
+    });
+
+    // Handle file changed externally
+    const unsubChange = window.api.watcher.onFileChanged(async (event) => {
+      // If this is the currently selected note, reload its content
+      const currentNote = selectedNoteRef.current;
+      if (currentNote && currentNote.path === event.path) {
+        const newContent = await window.api.notes.read(event.path);
+        // Only update if content actually changed (avoid cursor jump during our own saves)
+        if (newContent !== contentRef.current) {
+          setContent(newContent);
+          lastSavedContentRef.current = newContent;
+        }
+      }
+      // Also refresh backlinks in case links changed
+      if (currentNote) {
+        const backlinks = await window.api.notes.getBacklinks(currentNote.title);
+        setBacklinks(backlinks);
+      }
+    });
+
+    // Handle file deleted externally
+    const unsubDelete = window.api.watcher.onFileDeleted((event) => {
+      setNotes((prev) => prev.filter((n) => n.path !== event.path));
+      setRecentNotes((prev) => prev.filter((t) => t !== event.title));
+
+      // If this was the selected note, clear selection
+      const currentNote = selectedNoteRef.current;
+      if (currentNote && currentNote.path === event.path) {
+        setSelectedNote(null);
+        setContent("");
+      }
+    });
+
+    return () => {
+      unsubAdd();
+      unsubChange();
+      unsubDelete();
+    };
+  }, []);
+
   // Restore last opened note on startup
   const hasRestoredNote = useRef(false);
   useEffect(() => {

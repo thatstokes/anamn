@@ -1,5 +1,5 @@
-import { contextBridge, ipcRenderer } from "electron";
-import type { Api } from "../shared/types.js";
+import { contextBridge, ipcRenderer, IpcRendererEvent } from "electron";
+import type { Api, FileChangeEvent } from "../shared/types.js";
 
 const api: Api = {
   workspace: {
@@ -21,6 +21,23 @@ const api: Api = {
   config: {
     get: () => ipcRenderer.invoke("config:get"),
     set: (updates) => ipcRenderer.invoke("config:set", updates),
+  },
+  watcher: {
+    onFileAdded: (callback: (event: FileChangeEvent) => void) => {
+      const handler = (_: IpcRendererEvent, event: FileChangeEvent) => callback(event);
+      ipcRenderer.on("watcher:file-added", handler);
+      return () => ipcRenderer.removeListener("watcher:file-added", handler);
+    },
+    onFileChanged: (callback: (event: FileChangeEvent) => void) => {
+      const handler = (_: IpcRendererEvent, event: FileChangeEvent) => callback(event);
+      ipcRenderer.on("watcher:file-changed", handler);
+      return () => ipcRenderer.removeListener("watcher:file-changed", handler);
+    },
+    onFileDeleted: (callback: (event: FileChangeEvent) => void) => {
+      const handler = (_: IpcRendererEvent, event: FileChangeEvent) => callback(event);
+      ipcRenderer.on("watcher:file-deleted", handler);
+      return () => ipcRenderer.removeListener("watcher:file-deleted", handler);
+    },
   },
 };
 

@@ -55,10 +55,22 @@ export interface NotesApi {
   search: (query: string) => Promise<SearchResult[]>;
 }
 
+export interface FileChangeEvent {
+  path: string;
+  title: string;
+}
+
+export interface WatcherApi {
+  onFileAdded: (callback: (event: FileChangeEvent) => void) => () => void;
+  onFileChanged: (callback: (event: FileChangeEvent) => void) => () => void;
+  onFileDeleted: (callback: (event: FileChangeEvent) => void) => () => void;
+}
+
 export interface Api {
   workspace: WorkspaceApi;
   notes: NotesApi;
   config: ConfigApi;
+  watcher: WatcherApi;
 }
 
 declare global {
