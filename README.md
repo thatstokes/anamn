@@ -152,26 +152,21 @@ Anamn uses vim-style modal editing. Notes open in **view mode** by default.
 | `Escape` | Exit edit mode, return to view mode |
 | `[[` | Open link autocomplete |
 
-### Visual Mode
+### Selecting Text
 
-Enter visual mode from view mode to select text.
+Press `v` or `V` in view mode to start selecting text.
 
-#### Entering Visual Mode
 | Key | Action |
 |-----|--------|
-| `v` | Enter character-wise visual mode |
-| `V` | Enter line-wise visual mode |
-
-#### In Visual Mode
-| Key | Action |
-|-----|--------|
+| `v` | Start character-wise selection |
+| `V` | Start line-wise selection |
 | `h` | Extend selection left (char mode) |
 | `l` | Extend selection right (char mode) |
 | `j` | Extend selection down |
 | `k` | Extend selection up |
 | `y` | Yank (copy) selection |
 | `d` | Delete selection |
-| `Escape` | Exit visual mode |
+| `Escape` | Cancel selection |
 
 ### Command Palette
 

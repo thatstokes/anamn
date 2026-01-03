@@ -314,8 +314,8 @@ function App() {
   }>({ show: false, query: "", startPos: 0, selectedIndex: 0 });
   const [focusedNoteIndex, setFocusedNoteIndex] = useState<number>(-1);
   const [sidebarHasFocus, setSidebarHasFocus] = useState(false);
-  const [visualMode, setVisualMode] = useState<"char" | "line" | null>(null);
-  const [selectionAnchor, setSelectionAnchor] = useState<number>(0);
+  // Selection state for text selection (v/V keys in view mode)
+  const [selection, setSelection] = useState<{ type: "char" | "line"; anchor: number } | null>(null);
 
   // Refs for elements we need to focus
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -699,27 +699,25 @@ function App() {
           return;
         }
 
-        // "v" - enter character-wise visual mode
+        // "v" - start character-wise selection
         if (e.key === "v") {
           e.preventDefault();
-          setVisualMode("char");
           setViewMode("edit");
           setTimeout(() => {
             const textarea = textareaRef.current;
             if (textarea) {
               textarea.focus();
               const pos = textarea.selectionStart;
-              setSelectionAnchor(pos);
+              setSelection({ type: "char", anchor: pos });
               textarea.setSelectionRange(pos, pos + 1);
             }
           }, 0);
           return;
         }
 
-        // "V" - enter line-wise visual mode
+        // "V" - start line-wise selection
         if (e.key === "V") {
           e.preventDefault();
-          setVisualMode("line");
           setViewMode("edit");
           setTimeout(() => {
             const textarea = textareaRef.current;
@@ -728,7 +726,7 @@ function App() {
               // Select the first line
               const lineEnd = content.indexOf("\n");
               const end = lineEnd === -1 ? content.length : lineEnd + 1;
-              setSelectionAnchor(0);
+              setSelection({ type: "line", anchor: 0 });
               textarea.setSelectionRange(0, end);
             }
           }, 0);
@@ -736,8 +734,8 @@ function App() {
         }
       }
 
-      // Visual mode keybindings (in edit mode with visual mode active)
-      if (selectedNote && viewMode === "edit" && visualMode) {
+      // Selection keybindings (in edit mode with active selection)
+      if (selectedNote && viewMode === "edit" && selection) {
         const textarea = textareaRef.current;
         if (!textarea) return;
 
@@ -752,27 +750,27 @@ function App() {
         };
 
         // "h" - move selection left
-        if (e.key === "h" && visualMode === "char") {
+        if (e.key === "h" && selection.type === "char") {
           e.preventDefault();
-          const head = textarea.selectionStart === selectionAnchor
+          const head = textarea.selectionStart === selection.anchor
             ? textarea.selectionEnd
             : textarea.selectionStart;
           const newHead = Math.max(0, head - 1);
-          const start = Math.min(selectionAnchor, newHead);
-          const end = Math.max(selectionAnchor, newHead);
+          const start = Math.min(selection.anchor, newHead);
+          const end = Math.max(selection.anchor, newHead);
           textarea.setSelectionRange(start, Math.max(end, start + 1));
           return;
         }
 
         // "l" - move selection right
-        if (e.key === "l" && visualMode === "char") {
+        if (e.key === "l" && selection.type === "char") {
           e.preventDefault();
-          const head = textarea.selectionEnd === selectionAnchor
+          const head = textarea.selectionEnd === selection.anchor
             ? textarea.selectionStart
             : textarea.selectionEnd;
           const newHead = Math.min(content.length, head + 1);
-          const start = Math.min(selectionAnchor, newHead);
-          const end = Math.max(selectionAnchor, newHead);
+          const start = Math.min(selection.anchor, newHead);
+          const end = Math.max(selection.anchor, newHead);
           textarea.setSelectionRange(start, end);
           return;
         }
@@ -780,7 +778,7 @@ function App() {
         // "j" - move selection down
         if (e.key === "j") {
           e.preventDefault();
-          if (visualMode === "line") {
+          if (selection.type === "line") {
             const currentEnd = textarea.selectionEnd;
             const newEnd = getLineEnd(currentEnd);
             textarea.setSelectionRange(textarea.selectionStart, newEnd);
@@ -792,8 +790,8 @@ function App() {
             if (nextLineStart < content.length) {
               const nextLineEnd = getLineEnd(nextLineStart);
               const newHead = Math.min(nextLineStart + col, nextLineEnd - 1);
-              const start = Math.min(selectionAnchor, newHead);
-              const end = Math.max(selectionAnchor, newHead);
+              const start = Math.min(selection.anchor, newHead);
+              const end = Math.max(selection.anchor, newHead);
               textarea.setSelectionRange(start, end);
             }
           }
@@ -803,7 +801,7 @@ function App() {
         // "k" - move selection up
         if (e.key === "k") {
           e.preventDefault();
-          if (visualMode === "line") {
+          if (selection.type === "line") {
             const currentStart = textarea.selectionStart;
             if (currentStart > 0) {
               const prevLineStart = getLineStart(currentStart - 1);
@@ -817,8 +815,8 @@ function App() {
               const prevLineStart = getLineStart(lineStart - 1);
               const prevLineEnd = lineStart - 1;
               const newHead = Math.min(prevLineStart + col, prevLineEnd);
-              const start = Math.min(selectionAnchor, newHead);
-              const end = Math.max(selectionAnchor, newHead);
+              const start = Math.min(selection.anchor, newHead);
+              const end = Math.max(selection.anchor, newHead);
               textarea.setSelectionRange(start, end);
             }
           }
@@ -830,7 +828,7 @@ function App() {
           e.preventDefault();
           const selected = content.slice(textarea.selectionStart, textarea.selectionEnd);
           navigator.clipboard.writeText(selected);
-          setVisualMode(null);
+          setSelection(null);
           setViewMode("rendered");
           return;
         }
@@ -841,15 +839,15 @@ function App() {
           const before = content.slice(0, textarea.selectionStart);
           const after = content.slice(textarea.selectionEnd);
           setContent(before + after);
-          setVisualMode(null);
+          setSelection(null);
           setViewMode("rendered");
           return;
         }
 
-        // "Escape" - exit visual mode
+        // "Escape" - cancel selection
         if (e.key === "Escape") {
           e.preventDefault();
-          setVisualMode(null);
+          setSelection(null);
           setViewMode("rendered");
           return;
         }
@@ -858,7 +856,7 @@ function App() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [shortcuts, searchQuery, newNoteTitle, selectedNote, matchesShortcut, saveNote, showCommandPalette, showRightPanel, showFindBar, viewMode, linkAutocomplete.show, content, findMatches, visualMode, selectionAnchor]);
+  }, [shortcuts, searchQuery, newNoteTitle, selectedNote, matchesShortcut, saveNote, showCommandPalette, showRightPanel, showFindBar, viewMode, linkAutocomplete.show, content, findMatches, selection]);
 
   const handleSelectWorkspace = async () => {
     const path = await window.api.workspace.select();
@@ -1640,9 +1638,9 @@ function App() {
               <div style={styles.editorActions}>
                 <span style={{
                   ...styles.modeIndicator,
-                  background: visualMode ? "#8b5cf6" : viewMode === "edit" ? "#22c55e" : "#3b82f6",
+                  background: selection ? "#8b5cf6" : viewMode === "edit" ? "#22c55e" : "#3b82f6",
                 }}>
-                  {visualMode === "line" ? "VISUAL LINE" : visualMode === "char" ? "VISUAL" : viewMode === "edit" ? "INSERT" : "NORMAL"}
+                  {selection?.type === "line" ? "SELECT LINE" : selection?.type === "char" ? "SELECT" : viewMode === "edit" ? "INSERT" : "NORMAL"}
                 </span>
                 <button
                   onClick={handleDeleteNote}
