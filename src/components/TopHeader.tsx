@@ -1,29 +1,22 @@
-import type { Note, SearchResult } from "../../shared/types.js";
+import type { Note } from "../../shared/types.js";
 import { styles } from "../styles/styles.js";
+import { useUI } from "../state/contexts/UIContext.js";
 
 interface TopHeaderProps {
-  searchQuery: string;
-  setSearchQuery: (query: string) => void;
-  searchResults: SearchResult[];
-  isSearching: boolean;
   selectedNote: Note | null;
-  showRightPanel: boolean;
-  setShowRightPanel: React.Dispatch<React.SetStateAction<boolean>>;
-  searchInputRef: React.RefObject<HTMLInputElement | null>;
   onSelectNote: (note: Note) => void;
 }
 
-export function TopHeader({
-  searchQuery,
-  setSearchQuery,
-  searchResults,
-  isSearching,
-  selectedNote,
-  showRightPanel,
-  setShowRightPanel,
-  searchInputRef,
-  onSelectNote,
-}: TopHeaderProps) {
+export function TopHeader({ selectedNote, onSelectNote }: TopHeaderProps) {
+  const {
+    searchQuery,
+    setSearchQuery,
+    searchResults,
+    isSearching,
+    showRightPanel,
+    setShowRightPanel,
+    searchInputRef,
+  } = useUI();
   return (
     <div style={styles.topHeader}>
       <div style={styles.topHeaderTitle}>Anamn</div>

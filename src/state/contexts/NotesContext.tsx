@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useMemo, useRef } from "react";
+import { createContext, useContext, useState, useCallback, useMemo, useRef, useEffect } from "react";
 import type { Note } from "../../../shared/types.js";
 
 interface NotesContextValue {
@@ -17,17 +17,18 @@ interface NotesContextValue {
 
 const NotesContext = createContext<NotesContextValue | null>(null);
 
-export function NotesProvider({
-  children,
-  initialRecentNotes = [],
-}: {
-  children: React.ReactNode;
-  initialRecentNotes?: string[];
-}) {
+export function NotesProvider({ children }: { children: React.ReactNode }) {
   const [notes, setNotes] = useState<Note[]>([]);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [backlinks, setBacklinks] = useState<Note[]>([]);
-  const [recentNotes, setRecentNotes] = useState<string[]>(initialRecentNotes);
+  const [recentNotes, setRecentNotes] = useState<string[]>([]);
+
+  // Load recentNotes from config on mount
+  useEffect(() => {
+    window.api.config.get().then((config) => {
+      setRecentNotes(config.recentNotes);
+    });
+  }, []);
 
   // Keep ref in sync
   const selectedNoteRef = useRef<Note | null>(selectedNote);

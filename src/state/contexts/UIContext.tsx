@@ -1,22 +1,32 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from "react";
 import type { KeyboardShortcuts, RightPanelSection } from "../../../shared/types.js";
+import { useDebouncedSearch } from "../hooks/useDebouncedSearch.js";
 
 interface UIContextValue {
+  // Shortcuts
   shortcuts: KeyboardShortcuts | null;
+  // Right panel
   showRightPanel: boolean;
   setShowRightPanel: React.Dispatch<React.SetStateAction<boolean>>;
-  showCommandPalette: boolean;
-  setShowCommandPalette: React.Dispatch<React.SetStateAction<boolean>>;
-  commandQuery: string;
-  setCommandQuery: React.Dispatch<React.SetStateAction<string>>;
   rightPanelSections: RightPanelSection[];
   setRightPanelSections: React.Dispatch<React.SetStateAction<RightPanelSection[]>>;
   collapsedSections: Set<RightPanelSection>;
   toggleSectionCollapse: (section: RightPanelSection) => void;
+  // Command palette
+  showCommandPalette: boolean;
+  setShowCommandPalette: React.Dispatch<React.SetStateAction<boolean>>;
+  commandQuery: string;
+  setCommandQuery: React.Dispatch<React.SetStateAction<string>>;
+  // Search
+  searchQuery: string;
+  setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
+  searchResults: import("../../../shared/types.js").SearchResult[];
+  isSearching: boolean;
   // Refs for focus management
   searchInputRef: React.RefObject<HTMLInputElement | null>;
   newNoteInputRef: React.RefObject<HTMLInputElement | null>;
   commandInputRef: React.RefObject<HTMLInputElement | null>;
+  findInputRef: React.RefObject<HTMLInputElement | null>;
 }
 
 const UIContext = createContext<UIContextValue | null>(null);
@@ -28,11 +38,16 @@ export function UIProvider({ children }: { children: React.ReactNode }) {
   const [commandQuery, setCommandQuery] = useState("");
   const [rightPanelSections, setRightPanelSections] = useState<RightPanelSection[]>(["links", "graph"]);
   const [collapsedSections, setCollapsedSections] = useState<Set<RightPanelSection>>(new Set());
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Debounced search
+  const { results: searchResults, isSearching } = useDebouncedSearch({ query: searchQuery });
 
   // Refs for focus management
   const searchInputRef = useRef<HTMLInputElement>(null);
   const newNoteInputRef = useRef<HTMLInputElement>(null);
   const commandInputRef = useRef<HTMLInputElement>(null);
+  const findInputRef = useRef<HTMLInputElement>(null);
 
   // Load config on mount
   useEffect(() => {
@@ -61,25 +76,33 @@ export function UIProvider({ children }: { children: React.ReactNode }) {
     shortcuts,
     showRightPanel,
     setShowRightPanel,
-    showCommandPalette,
-    setShowCommandPalette,
-    commandQuery,
-    setCommandQuery,
     rightPanelSections,
     setRightPanelSections,
     collapsedSections,
     toggleSectionCollapse,
+    showCommandPalette,
+    setShowCommandPalette,
+    commandQuery,
+    setCommandQuery,
+    searchQuery,
+    setSearchQuery,
+    searchResults,
+    isSearching,
     searchInputRef,
     newNoteInputRef,
     commandInputRef,
+    findInputRef,
   }), [
     shortcuts,
     showRightPanel,
-    showCommandPalette,
-    commandQuery,
     rightPanelSections,
     collapsedSections,
     toggleSectionCollapse,
+    showCommandPalette,
+    commandQuery,
+    searchQuery,
+    searchResults,
+    isSearching,
   ]);
 
   return <UIContext.Provider value={value}>{children}</UIContext.Provider>;

@@ -1,6 +1,7 @@
-import { createContext, useContext, useState, useMemo, useRef } from "react";
-import type { ViewMode, Note } from "../../../shared/types.js";
+import { createContext, useContext, useState, useMemo, useRef, useEffect } from "react";
+import type { ViewMode } from "../../../shared/types.js";
 import { useAutoSave } from "../hooks/useAutoSave.js";
+import { useNotes } from "./NotesContext.js";
 
 interface Selection {
   type: "char" | "line";
@@ -24,18 +25,19 @@ interface EditorContextValue {
 
 const EditorContext = createContext<EditorContextValue | null>(null);
 
-export function EditorProvider({
-  children,
-  selectedNote,
-  initialViewMode = "rendered",
-}: {
-  children: React.ReactNode;
-  selectedNote: Note | null;
-  initialViewMode?: ViewMode;
-}) {
+export function EditorProvider({ children }: { children: React.ReactNode }) {
+  const { selectedNote } = useNotes();
+
   const [content, setContent] = useState("");
-  const [viewMode, setViewMode] = useState<ViewMode>(initialViewMode);
+  const [viewMode, setViewMode] = useState<ViewMode>("rendered");
   const [selection, setSelection] = useState<Selection | null>(null);
+
+  // Load default view mode from config on mount
+  useEffect(() => {
+    window.api.config.get().then((config) => {
+      setViewMode(config.default_view_mode);
+    });
+  }, []);
 
   // Refs
   const textareaRef = useRef<HTMLTextAreaElement>(null);

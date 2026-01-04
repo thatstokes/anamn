@@ -1,11 +1,14 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from "react";
-import type { Note, ViewMode, RightPanelSection } from "../shared/types.js";
+import { useState, useEffect, useMemo, useRef } from "react";
+import type { Note } from "../shared/types.js";
 import { getUniqueLinks } from "../shared/links.js";
 import { styles } from "./styles/styles.js";
 
+// Contexts
+import { UIProvider, useUI } from "./state/contexts/UIContext.js";
+import { NotesProvider, useNotes } from "./state/contexts/NotesContext.js";
+import { EditorProvider, useEditor } from "./state/contexts/EditorContext.js";
+
 // Hooks
-import { useAutoSave } from "./state/hooks/useAutoSave.js";
-import { useDebouncedSearch } from "./state/hooks/useDebouncedSearch.js";
 import { useFindInNote } from "./state/hooks/useFindInNote.js";
 import { useLinkAutocomplete } from "./state/hooks/useLinkAutocomplete.js";
 import { useFileWatcher } from "./state/hooks/useFileWatcher.js";
@@ -20,55 +23,76 @@ import { ContextMenu } from "./components/ContextMenu.js";
 import { CommandPalette } from "./components/CommandPalette.js";
 
 export function App() {
+  return (
+    <UIProvider>
+      <NotesProvider>
+        <EditorProvider>
+          <AppContent />
+        </EditorProvider>
+      </NotesProvider>
+    </UIProvider>
+  );
+}
+
+function AppContent() {
+  // Get UI state from context
+  const {
+    shortcuts,
+    showRightPanel,
+    setShowRightPanel,
+    rightPanelSections,
+    setRightPanelSections,
+    collapsedSections,
+    toggleSectionCollapse,
+    showCommandPalette,
+    setShowCommandPalette,
+    commandQuery,
+    setCommandQuery,
+    searchQuery,
+    setSearchQuery,
+    searchInputRef,
+    newNoteInputRef,
+    commandInputRef,
+    findInputRef,
+  } = useUI();
+
+  // Get notes state from context
+  const {
+    notes,
+    setNotes,
+    selectedNote,
+    setSelectedNote,
+    backlinks,
+    setBacklinks,
+    recentNotes,
+    setRecentNotes,
+    trackRecentNote,
+    selectedNoteRef,
+  } = useNotes();
+
+  // Get editor state from context
+  const {
+    content,
+    setContent,
+    viewMode,
+    setViewMode,
+    saveNote,
+    lastSavedContentRef,
+    selection,
+    setSelection,
+    textareaRef,
+    renderedViewRef,
+    contentRef,
+  } = useEditor();
+
   // Workspace state
   const [workspace, setWorkspace] = useState<string | null>(null);
 
-  // Notes state
-  const [notes, setNotes] = useState<Note[]>([]);
-  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
-  const [backlinks, setBacklinks] = useState<Note[]>([]);
-  const [recentNotes, setRecentNotes] = useState<string[]>([]);
-
-  // Editor state
-  const [content, setContent] = useState("");
-  const [viewMode, setViewMode] = useState<ViewMode>("rendered");
-  const [selection, setSelection] = useState<{ type: "char" | "line"; anchor: number } | null>(null);
-
-  // UI state
+  // UI state (local)
   const [newNoteTitle, setNewNoteTitle] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [shortcuts, setShortcuts] = useState<import("../shared/types.js").KeyboardShortcuts | null>(null);
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameTitle, setRenameTitle] = useState("");
   const [contextMenu, setContextMenu] = useState<{ note: Note; x: number; y: number } | null>(null);
-  const [showCommandPalette, setShowCommandPalette] = useState(false);
-  const [commandQuery, setCommandQuery] = useState("");
-  const [showRightPanel, setShowRightPanel] = useState(false);
-  const [rightPanelSections, setRightPanelSections] = useState<RightPanelSection[]>(["links", "graph"]);
-  const [collapsedSections, setCollapsedSections] = useState<Set<RightPanelSection>>(new Set());
-
-  // Refs
-  const searchInputRef = useRef<HTMLInputElement>(null);
-  const newNoteInputRef = useRef<HTMLInputElement>(null);
-  const commandInputRef = useRef<HTMLInputElement>(null);
-  const findInputRef = useRef<HTMLInputElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const renderedViewRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef(content);
-  const selectedNoteRef = useRef(selectedNote);
-  contentRef.current = content;
-  selectedNoteRef.current = selectedNote;
-
-  // Auto-save hook
-  const { saveNote, lastSavedContentRef } = useAutoSave({
-    note: selectedNote,
-    content,
-  });
-
-  // Debounced search hook
-  const { results: searchResults, isSearching } = useDebouncedSearch({
-    query: searchQuery,
-  });
 
   // Find in note hook
   const {
@@ -150,18 +174,6 @@ export function App() {
     closeFindBar,
   });
 
-  // Load config on mount
-  useEffect(() => {
-    window.api.config.get().then((config) => {
-      setViewMode(config.default_view_mode);
-      setShortcuts(config.shortcuts);
-      setRecentNotes(config.recentNotes);
-      setRightPanelSections(config.rightPanelSections);
-      setShowRightPanel(config.rightPanelOpen);
-      setCollapsedSections(new Set(config.collapsedSections));
-    });
-  }, []);
-
   // Load workspace
   useEffect(() => {
     window.api.workspace.get().then(setWorkspace);
@@ -189,16 +201,6 @@ export function App() {
       }
     });
   }, [notes]);
-
-  // Track recent notes
-  const trackRecentNote = useCallback((title: string) => {
-    setRecentNotes((prev) => {
-      const filtered = prev.filter((t) => t !== title);
-      const updated = [title, ...filtered].slice(0, 10);
-      window.api.config.set({ recentNotes: updated });
-      return updated;
-    });
-  }, []);
 
   // Close context menu on click
   useEffect(() => {
@@ -366,19 +368,6 @@ export function App() {
     }
   };
 
-  const toggleSectionCollapse = useCallback((section: RightPanelSection) => {
-    setCollapsedSections((prev) => {
-      const next = new Set(prev);
-      if (next.has(section)) {
-        next.delete(section);
-      } else {
-        next.add(section);
-      }
-      window.api.config.set({ collapsedSections: Array.from(next) });
-      return next;
-    });
-  }, []);
-
   // Command palette commands
   const commands = useMemo(() => {
     const cmds: { id: string; label: string; action: () => void }[] = [
@@ -426,14 +415,7 @@ export function App() {
   return (
     <div style={styles.appContainer}>
       <TopHeader
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        searchResults={searchResults}
-        isSearching={isSearching}
         selectedNote={selectedNote}
-        showRightPanel={showRightPanel}
-        setShowRightPanel={setShowRightPanel}
-        searchInputRef={searchInputRef}
         onSelectNote={handleSelectNote}
       />
       <div style={styles.mainContent}>
