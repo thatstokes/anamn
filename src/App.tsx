@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import type { Note } from "../shared/types.js";
 import { getUniqueLinks } from "../shared/links.js";
+import { getUniqueTags } from "../shared/tags.js";
 import { styles } from "./styles/styles.js";
 
 // Contexts
@@ -137,41 +138,6 @@ function AppContent() {
     setSelectedNote,
     setContent,
     setBacklinks,
-  });
-
-  // Keyboard shortcuts hook
-  useKeyboardShortcuts({
-    shortcuts,
-    selectedNote,
-    content,
-    viewMode,
-    searchQuery,
-    newNoteTitle,
-    showCommandPalette,
-    showRightPanel,
-    showFindBar,
-    linkAutocompleteShow: linkAutocomplete.show,
-    findMatches,
-    selection,
-    setContent,
-    setViewMode,
-    setSearchQuery,
-    setNewNoteTitle,
-    setShowCommandPalette,
-    setShowRightPanel,
-    setShowFindBar,
-    setLinkAutocomplete,
-    setCurrentMatchIndex,
-    setSelection,
-    setCommandQuery,
-    textareaRef,
-    renderedViewRef,
-    searchInputRef,
-    newNoteInputRef,
-    commandInputRef,
-    findInputRef,
-    saveNote,
-    closeFindBar,
   });
 
   // Load workspace
@@ -368,6 +334,58 @@ function AppContent() {
     }
   };
 
+  const handleOpenDaily = async () => {
+    try {
+      await saveNote();
+      const note = await window.api.notes.openDaily();
+      // Add to notes list if not already present
+      setNotes((prev) => {
+        if (prev.some((n) => n.path === note.path)) return prev;
+        return [...prev, note].sort((a, b) => a.title.localeCompare(b.title));
+      });
+      await handleSelectNote(note);
+    } catch (err) {
+      console.error("Failed to open daily note:", err);
+      alert(err instanceof Error ? err.message : "Failed to open daily note");
+    }
+  };
+
+  // Keyboard shortcuts hook
+  useKeyboardShortcuts({
+    shortcuts,
+    selectedNote,
+    content,
+    viewMode,
+    searchQuery,
+    newNoteTitle,
+    showCommandPalette,
+    showRightPanel,
+    showFindBar,
+    linkAutocompleteShow: linkAutocomplete.show,
+    findMatches,
+    selection,
+    setContent,
+    setViewMode,
+    setSearchQuery,
+    setNewNoteTitle,
+    setShowCommandPalette,
+    setShowRightPanel,
+    setShowFindBar,
+    setLinkAutocomplete,
+    setCurrentMatchIndex,
+    setSelection,
+    setCommandQuery,
+    textareaRef,
+    renderedViewRef,
+    searchInputRef,
+    newNoteInputRef,
+    commandInputRef,
+    findInputRef,
+    saveNote,
+    closeFindBar,
+    onOpenDaily: handleOpenDaily,
+  });
+
   // Command palette commands
   const commands = useMemo(() => {
     const cmds: { id: string; label: string; action: () => void }[] = [
@@ -376,6 +394,7 @@ function AppContent() {
       { id: "wq", label: "wq - Save and close", action: async () => { await saveNote(); setSelectedNote(null); setContent(""); } },
       { id: "e", label: "e - Edit mode", action: () => { if (selectedNote) { setViewMode("edit"); setTimeout(() => textareaRef.current?.focus(), 0); } } },
       { id: "new-note", label: "new - New Note", action: () => { setNewNoteTitle(""); setTimeout(() => newNoteInputRef.current?.focus(), 0); } },
+      { id: "daily", label: "daily - Open Daily Note", action: handleOpenDaily },
       { id: "search", label: "find - Search Notes", action: () => searchInputRef.current?.focus() },
       { id: "toggle-right-panel", label: `panel - ${showRightPanel ? "Hide" : "Show"} Right Panel`, action: () => setShowRightPanel((v) => !v) },
       { id: "change-folder", label: "cd - Change Workspace Folder", action: handleSelectWorkspace },
@@ -400,6 +419,12 @@ function AppContent() {
   };
 
   const outgoingLinks = useMemo(() => getUniqueLinks(content), [content]);
+  const noteTags = useMemo(() => getUniqueTags(content), [content]);
+
+  const handleTagClick = (tag: string) => {
+    setSearchQuery(`#${tag}`);
+    searchInputRef.current?.focus();
+  };
 
   // Welcome screen
   if (!workspace) {
@@ -426,6 +451,7 @@ function AppContent() {
           setNewNoteTitle={setNewNoteTitle}
           onSelectNote={handleSelectNote}
           onCreateNote={handleCreateNote}
+          onOpenDaily={handleOpenDaily}
           onContextMenu={handleContextMenu}
           onChangeWorkspace={handleSelectWorkspace}
         />
@@ -458,6 +484,7 @@ function AppContent() {
           onTextareaKeyDown={handleTextareaKeyDown}
           onInsertLink={insertLinkSuggestion}
           onLinkClick={handleLinkClick}
+          onTagClick={handleTagClick}
         />
         {showRightPanel && (
           <RightPanel
@@ -470,8 +497,10 @@ function AppContent() {
             outgoingLinks={outgoingLinks}
             backlinks={backlinks}
             recentNotes={recentNotes}
+            tags={noteTags}
             onSelectNote={handleSelectNote}
             onLinkClick={handleLinkClick}
+            onTagClick={handleTagClick}
           />
         )}
       </div>

@@ -19,9 +19,16 @@ export interface KeyboardShortcuts {
   closePanel: string;
   commandPalette: string;
   rightPanel: string;
+  dailyNote: string;
 }
 
-export type RightPanelSection = "links" | "graph" | "recents";
+export type RightPanelSection = "links" | "graph" | "recents" | "tags";
+
+export interface DailyNoteConfig {
+  format: string;  // Luxon date format, default "yyyy-MM-dd"
+  prefix: string;  // Text before date, default ""
+  suffix: string;  // Text after date, default ""
+}
 
 export interface Config {
   notes_dir: string;
@@ -32,6 +39,7 @@ export interface Config {
   rightPanelOpen: boolean; // Whether right panel is open on startup
   collapsedSections: RightPanelSection[]; // Which sections are collapsed
   lastOpenedNote: string | null; // Path of the last opened note
+  dailyNote: DailyNoteConfig; // Daily note settings
 }
 
 export interface ConfigApi {
@@ -53,6 +61,8 @@ export interface NotesApi {
   rename: (path: string, newTitle: string) => Promise<Note>;
   getBacklinks: (title: string) => Promise<Note[]>;
   search: (query: string) => Promise<SearchResult[]>;
+  openDaily: () => Promise<Note>;
+  getNotesWithTag: (tag: string) => Promise<Note[]>;
 }
 
 export interface FileChangeEvent {

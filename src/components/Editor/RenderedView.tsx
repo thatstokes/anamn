@@ -7,6 +7,7 @@ interface RenderedViewProps {
   notes: Note[];
   renderedViewRef: React.RefObject<HTMLDivElement | null>;
   onLinkClick: (linkTitle: string) => void;
+  onTagClick: (tag: string) => void;
 }
 
 export function RenderedView({
@@ -14,7 +15,43 @@ export function RenderedView({
   notes,
   renderedViewRef,
   onLinkClick,
+  onTagClick,
 }: RenderedViewProps) {
+  // Process tags in text to make them clickable
+  const processTags = (text: string, keyPrefix: string): React.ReactNode[] => {
+    const parts: React.ReactNode[] = [];
+    const tagRegex = /(?:^|[^\w#/])#([\w-]+)/g;
+    let lastIndex = 0;
+    let match: RegExpExecArray | null;
+
+    while ((match = tagRegex.exec(text)) !== null) {
+      const tagText = match[1];
+      const hashIndex = match[0].lastIndexOf("#");
+      const beforeHash = text.slice(lastIndex, match.index + hashIndex);
+
+      if (beforeHash) {
+        parts.push(beforeHash);
+      }
+
+      parts.push(
+        <span
+          key={`${keyPrefix}-tag-${match.index}`}
+          onClick={() => onTagClick(tagText ?? "")}
+          style={styles.tagInContent}
+        >
+          #{tagText}
+        </span>
+      );
+      lastIndex = match.index + match[0].length;
+    }
+
+    if (lastIndex < text.length) {
+      parts.push(text.slice(lastIndex));
+    }
+
+    return parts.length > 0 ? parts : [text];
+  };
+
   // Process wiki links in rendered markdown to make them clickable
   const processWikiLinks = (children: React.ReactNode): React.ReactNode => {
     if (typeof children === "string") {
@@ -25,7 +62,9 @@ export function RenderedView({
 
       while ((match = regex.exec(children)) !== null) {
         if (match.index > lastIndex) {
-          parts.push(children.slice(lastIndex, match.index));
+          // Process tags in the text before the link
+          const textBefore = children.slice(lastIndex, match.index);
+          parts.push(...processTags(textBefore, `before-${match.index}`));
         }
         const linkTitle = match[1];
         const exists = notes.some((n) => n.title === linkTitle);
@@ -44,9 +83,11 @@ export function RenderedView({
         lastIndex = regex.lastIndex;
       }
       if (lastIndex < children.length) {
-        parts.push(children.slice(lastIndex));
+        // Process tags in the remaining text
+        const textAfter = children.slice(lastIndex);
+        parts.push(...processTags(textAfter, `after-${lastIndex}`));
       }
-      return parts.length > 0 ? parts : children;
+      return parts.length > 0 ? parts : processTags(children, "root");
     }
     if (Array.isArray(children)) {
       return children.map((child, i) => (

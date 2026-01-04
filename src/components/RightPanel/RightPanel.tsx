@@ -4,6 +4,7 @@ import { styles } from "../../styles/styles.js";
 import { LinksSection } from "./LinksSection.js";
 import { RecentNotesSection } from "./RecentNotesSection.js";
 import { GraphView } from "./GraphView.js";
+import { TagsSection } from "./TagsSection.js";
 
 interface RightPanelProps {
   sections: RightPanelSection[];
@@ -15,8 +16,10 @@ interface RightPanelProps {
   outgoingLinks: string[];
   backlinks: Note[];
   recentNotes: string[];
+  tags: string[];
   onSelectNote: (note: Note) => void;
   onLinkClick: (linkTitle: string) => void;
+  onTagClick: (tag: string) => void;
 }
 
 export function RightPanel({
@@ -29,8 +32,10 @@ export function RightPanel({
   outgoingLinks,
   backlinks,
   recentNotes,
+  tags,
   onSelectNote,
   onLinkClick,
+  onTagClick,
 }: RightPanelProps) {
   const [draggedSection, setDraggedSection] = useState<RightPanelSection | null>(null);
   const [dragOverSection, setDragOverSection] = useState<RightPanelSection | null>(null);
@@ -146,6 +151,20 @@ export function RightPanel({
                     notes={notes}
                     onLinkClick={onLinkClick}
                     onSelectNote={onSelectNote}
+                  />
+                </div>
+              )}
+            </>
+          )}
+          {section === "tags" && (
+            <>
+              {renderSectionHeader("tags", "Tags")}
+              {!collapsedSections.has("tags") && (
+                <div style={styles.rightPanelSectionContent}>
+                  <TagsSection
+                    selectedNote={selectedNote}
+                    tags={tags}
+                    onTagClick={onTagClick}
                   />
                 </div>
               )}

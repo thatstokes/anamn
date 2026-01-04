@@ -15,7 +15,9 @@ var api = {
     delete: (path) => import_electron.ipcRenderer.invoke("notes:delete", path),
     rename: (path, newTitle) => import_electron.ipcRenderer.invoke("notes:rename", path, newTitle),
     getBacklinks: (title) => import_electron.ipcRenderer.invoke("notes:getBacklinks", title),
-    search: (query) => import_electron.ipcRenderer.invoke("notes:search", query)
+    search: (query) => import_electron.ipcRenderer.invoke("notes:search", query),
+    openDaily: () => import_electron.ipcRenderer.invoke("notes:openDaily"),
+    getNotesWithTag: (tag) => import_electron.ipcRenderer.invoke("notes:getNotesWithTag", tag)
   },
   config: {
     get: () => import_electron.ipcRenderer.invoke("config:get"),

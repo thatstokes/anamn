@@ -502,4 +502,22 @@ export const styles: Record<string, React.CSSProperties> = {
     textAlign: "center",
     fontStyle: "italic",
   },
+  tagsContainer: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "0.5rem",
+    padding: "0.75rem 1rem",
+  },
+  tagPill: {
+    background: "#2d3a4a",
+    color: "#7eb8ff",
+    padding: "0.25rem 0.5rem",
+    borderRadius: "4px",
+    fontSize: "12px",
+    cursor: "pointer",
+  },
+  tagInContent: {
+    color: "#7eb8ff",
+    cursor: "pointer",
+  },
 };

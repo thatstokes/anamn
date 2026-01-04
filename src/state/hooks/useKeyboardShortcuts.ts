@@ -44,6 +44,7 @@ interface UseKeyboardShortcutsOptions {
   // Callbacks
   saveNote: () => Promise<void>;
   closeFindBar: () => void;
+  onOpenDaily: () => void;
 }
 
 function matchesShortcut(e: KeyboardEvent, shortcut: string): boolean {
@@ -94,6 +95,7 @@ export function useKeyboardShortcuts(options: UseKeyboardShortcutsOptions): void
     findInputRef,
     saveNote,
     closeFindBar,
+    onOpenDaily,
   } = options;
 
   const pendingKeyRef = useRef<string | null>(null);
@@ -139,6 +141,13 @@ export function useKeyboardShortcuts(options: UseKeyboardShortcutsOptions): void
       if (matchesShortcut(e, shortcuts.rightPanel)) {
         e.preventDefault();
         setShowRightPanel((v) => !v);
+        return;
+      }
+
+      // Daily note (works even in input)
+      if (matchesShortcut(e, shortcuts.dailyNote)) {
+        e.preventDefault();
+        onOpenDaily();
         return;
       }
 
@@ -531,5 +540,6 @@ export function useKeyboardShortcuts(options: UseKeyboardShortcutsOptions): void
     commandInputRef,
     findInputRef,
     closeFindBar,
+    onOpenDaily,
   ]);
 }

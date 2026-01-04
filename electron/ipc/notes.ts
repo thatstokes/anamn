@@ -1,9 +1,12 @@
 import { ipcMain } from "electron";
 import fs from "fs/promises";
 import path from "path";
+import { DateTime } from "luxon";
 import { getWorkspacePath } from "./workspace.js";
 import { markFileWritten } from "./watcher.js";
 import { getUniqueLinks } from "../../shared/links.js";
+import { getUniqueTags } from "../../shared/tags.js";
+import { loadConfig } from "../config.js";
 import type { Note, SearchResult } from "../../shared/types.js";
 
 export function registerNotesHandlers() {
@@ -226,6 +229,70 @@ export function registerNotesHandlers() {
         if (a.matchType !== "title" && b.matchType === "title") return 1;
         return a.note.title.localeCompare(b.note.title);
       });
+    }
+  );
+
+  ipcMain.handle("notes:openDaily", async (): Promise<Note> => {
+    const workspace = getWorkspacePath();
+    if (!workspace) throw new Error("No workspace selected");
+
+    const config = await loadConfig();
+    const { format, prefix, suffix } = config.dailyNote;
+
+    // Format today's date using Luxon
+    let dateStr: string;
+    try {
+      dateStr = DateTime.now().toFormat(format);
+    } catch {
+      // Fallback to default format if invalid
+      dateStr = DateTime.now().toFormat("yyyy-MM-dd");
+    }
+
+    const title = `${prefix}${dateStr}${suffix}`;
+    const filename = `${title}.md`;
+    const notePath = path.join(workspace, filename);
+
+    // Check if file already exists
+    try {
+      await fs.access(notePath);
+      // File exists, return it
+      return { path: notePath, title };
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code !== "ENOENT") throw err;
+    }
+
+    // Create empty file with atomic write
+    const tempPath = `${notePath}.${Date.now()}.tmp`;
+    await fs.writeFile(tempPath, "", "utf-8");
+    await fs.rename(tempPath, notePath);
+    markFileWritten(notePath);
+
+    return { path: notePath, title };
+  });
+
+  ipcMain.handle(
+    "notes:getNotesWithTag",
+    async (_, tag: string): Promise<Note[]> => {
+      const workspace = getWorkspacePath();
+      if (!workspace || !tag.trim()) return [];
+
+      const entries = await fs.readdir(workspace, { withFileTypes: true });
+      const matchingNotes: Note[] = [];
+
+      for (const entry of entries) {
+        if (entry.isFile() && entry.name.endsWith(".md")) {
+          const notePath = path.join(workspace, entry.name);
+          const title = entry.name.replace(/\.md$/, "");
+          const content = await fs.readFile(notePath, "utf-8");
+
+          const tags = getUniqueTags(content);
+          if (tags.includes(tag)) {
+            matchingNotes.push({ path: notePath, title });
+          }
+        }
+      }
+
+      return matchingNotes.sort((a, b) => a.title.localeCompare(b.title));
     }
   );
 }

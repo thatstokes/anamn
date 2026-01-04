@@ -45,6 +45,7 @@ interface EditorProps {
   onTextareaKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   onInsertLink: (noteTitle: string) => void;
   onLinkClick: (linkTitle: string) => void;
+  onTagClick: (tag: string) => void;
 }
 
 export function Editor({
@@ -76,6 +77,7 @@ export function Editor({
   onTextareaKeyDown,
   onInsertLink,
   onLinkClick,
+  onTagClick,
 }: EditorProps) {
   if (!selectedNote) {
     return (
@@ -126,6 +128,7 @@ export function Editor({
           notes={notes}
           renderedViewRef={renderedViewRef}
           onLinkClick={onLinkClick}
+          onTagClick={onTagClick}
         />
       )}
     </div>

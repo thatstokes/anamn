@@ -17,6 +17,8 @@ const api: Api = {
       ipcRenderer.invoke("notes:rename", path, newTitle),
     getBacklinks: (title: string) => ipcRenderer.invoke("notes:getBacklinks", title),
     search: (query: string) => ipcRenderer.invoke("notes:search", query),
+    openDaily: () => ipcRenderer.invoke("notes:openDaily"),
+    getNotesWithTag: (tag: string) => ipcRenderer.invoke("notes:getNotesWithTag", tag),
   },
   config: {
     get: () => ipcRenderer.invoke("config:get"),

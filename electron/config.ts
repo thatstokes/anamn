@@ -13,9 +13,16 @@ export interface KeyboardShortcuts {
   closePanel: string;
   commandPalette: string;
   rightPanel: string;
+  dailyNote: string;
 }
 
-export type RightPanelSection = "links" | "graph" | "recents";
+export type RightPanelSection = "links" | "graph" | "recents" | "tags";
+
+export interface DailyNoteConfig {
+  format: string;  // Luxon date format, default "yyyy-MM-dd"
+  prefix: string;  // Text before date, default ""
+  suffix: string;  // Text after date, default ""
+}
 
 export interface Config {
   notes_dir: string;
@@ -26,6 +33,7 @@ export interface Config {
   rightPanelOpen: boolean; // Whether right panel is open on startup
   collapsedSections: RightPanelSection[]; // Which sections are collapsed
   lastOpenedNote: string | null; // Path of the last opened note
+  dailyNote: DailyNoteConfig; // Daily note settings
 }
 
 const DEFAULT_SHORTCUTS: KeyboardShortcuts = {
@@ -36,6 +44,13 @@ const DEFAULT_SHORTCUTS: KeyboardShortcuts = {
   closePanel: "Escape",
   commandPalette: "Ctrl+Shift+P",
   rightPanel: "Ctrl+G",
+  dailyNote: "Ctrl+D",
+};
+
+const DEFAULT_DAILY_NOTE: DailyNoteConfig = {
+  format: "yyyy-MM-dd",
+  prefix: "",
+  suffix: "",
 };
 
 const DEFAULT_CONFIG: Config = {
@@ -43,10 +58,11 @@ const DEFAULT_CONFIG: Config = {
   default_view_mode: "rendered",
   shortcuts: DEFAULT_SHORTCUTS,
   recentNotes: [],
-  rightPanelSections: ["recents", "links", "graph"],
+  rightPanelSections: ["recents", "links", "tags", "graph"],
   rightPanelOpen: true,
   collapsedSections: [],
   lastOpenedNote: null,
+  dailyNote: DEFAULT_DAILY_NOTE,
 };
 
 const CONFIG_FILENAME = "anamn.config.json";
@@ -85,6 +101,10 @@ export async function loadConfig(): Promise<Config> {
         shortcuts: {
           ...config.shortcuts,
           ...(parsed.shortcuts ?? {}),
+        },
+        dailyNote: {
+          ...config.dailyNote,
+          ...(parsed.dailyNote ?? {}),
         },
         // Only override arrays if explicitly provided
         recentNotes: parsed.recentNotes ?? config.recentNotes,

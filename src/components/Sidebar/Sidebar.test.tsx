@@ -15,6 +15,7 @@ describe("Sidebar", () => {
     setNewNoteTitle: vi.fn(),
     onSelectNote: vi.fn(),
     onCreateNote: vi.fn(),
+    onOpenDaily: vi.fn(),
     onContextMenu: vi.fn(),
     onChangeWorkspace: vi.fn(),
   };
