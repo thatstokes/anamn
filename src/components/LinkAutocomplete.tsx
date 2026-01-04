@@ -1,5 +1,4 @@
 import type { Note } from "../../shared/types.js";
-import { styles } from "../styles/styles.js";
 
 interface LinkAutocompleteProps {
   suggestions: Note[];
@@ -15,15 +14,12 @@ export function LinkAutocomplete({
   if (suggestions.length === 0) return null;
 
   return (
-    <div style={styles.autocompleteDropdown}>
+    <div className="autocomplete-dropdown">
       {suggestions.map((note, index) => (
         <div
           key={note.path}
           onClick={() => onSelect(note.title)}
-          style={{
-            ...styles.autocompleteItem,
-            background: index === selectedIndex ? "#3a3a3a" : "transparent",
-          }}
+          className={`autocomplete-item ${index === selectedIndex ? "selected" : ""}`}
         >
           {note.title}
         </div>

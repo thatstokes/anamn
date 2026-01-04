@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import type { Note } from "../shared/types.js";
 import { getUniqueLinks } from "../shared/links.js";
 import { getUniqueTags } from "../shared/tags.js";
-import { styles } from "./styles/styles.js";
 
 // Contexts
 import { UIProvider, useUI } from "./state/contexts/UIContext.js";
@@ -22,16 +21,22 @@ import { Editor } from "./components/Editor/Editor.js";
 import { RightPanel } from "./components/RightPanel/RightPanel.js";
 import { ContextMenu } from "./components/ContextMenu.js";
 import { CommandPalette } from "./components/CommandPalette.js";
+import { SettingsModal } from "./components/Settings/SettingsModal.js";
+import { VerticalNavBar } from "./components/VerticalNavBar.js";
+import { GraphView } from "./components/RightPanel/GraphView.js";
+import { ThemeProvider } from "./components/ThemeProvider.js";
 
 export function App() {
   return (
-    <UIProvider>
-      <NotesProvider>
-        <EditorProvider>
-          <AppContent />
-        </EditorProvider>
-      </NotesProvider>
-    </UIProvider>
+    <ThemeProvider>
+      <UIProvider>
+        <NotesProvider>
+          <EditorProvider>
+            <AppContent />
+          </EditorProvider>
+        </NotesProvider>
+      </UIProvider>
+    </ThemeProvider>
   );
 }
 
@@ -49,6 +54,11 @@ function AppContent() {
     setShowCommandPalette,
     commandQuery,
     setCommandQuery,
+    showSettings,
+    setShowSettings,
+    reloadConfig,
+    showGraphView,
+    setShowGraphView,
     searchQuery,
     setSearchQuery,
     searchInputRef,
@@ -398,6 +408,7 @@ function AppContent() {
       { id: "search", label: "find - Search Notes", action: () => searchInputRef.current?.focus() },
       { id: "toggle-right-panel", label: `panel - ${showRightPanel ? "Hide" : "Show"} Right Panel`, action: () => setShowRightPanel((v) => !v) },
       { id: "change-folder", label: "cd - Change Workspace Folder", action: handleSelectWorkspace },
+      { id: "settings", label: "settings - Open Settings", action: () => setShowSettings(true) },
     ];
 
     if (selectedNote) {
@@ -429,7 +440,7 @@ function AppContent() {
   // Welcome screen
   if (!workspace) {
     return (
-      <div style={styles.welcome}>
+      <div className="welcome">
         <h1>Anamn</h1>
         <p>Select a folder to store your notes</p>
         <button onClick={handleSelectWorkspace}>Select Folder</button>
@@ -438,12 +449,22 @@ function AppContent() {
   }
 
   return (
-    <div style={styles.appContainer}>
+    <div className="app-container">
       <TopHeader
         selectedNote={selectedNote}
         onSelectNote={handleSelectNote}
       />
-      <div style={styles.mainContent}>
+      <div className="main-content">
+        <VerticalNavBar
+          onNewNote={() => {
+            setNewNoteTitle("");
+            setTimeout(() => newNoteInputRef.current?.focus(), 0);
+          }}
+          onOpenDaily={handleOpenDaily}
+          onToggleGraph={() => setShowGraphView(!showGraphView)}
+          onOpenSettings={() => setShowSettings(true)}
+          showGraphView={showGraphView}
+        />
         <Sidebar
           notes={notes}
           selectedNote={selectedNote}
@@ -451,11 +472,22 @@ function AppContent() {
           setNewNoteTitle={setNewNoteTitle}
           onSelectNote={handleSelectNote}
           onCreateNote={handleCreateNote}
-          onOpenDaily={handleOpenDaily}
           onContextMenu={handleContextMenu}
           onChangeWorkspace={handleSelectWorkspace}
         />
-        <Editor
+        {showGraphView ? (
+          <div className="full-graph-container">
+            <GraphView
+              notes={notes}
+              selectedNote={selectedNote}
+              onSelectNote={(note) => {
+                setShowGraphView(false);
+                handleSelectNote(note);
+              }}
+            />
+          </div>
+        ) : (
+          <Editor
           selectedNote={selectedNote}
           content={content}
           viewMode={viewMode}
@@ -486,6 +518,7 @@ function AppContent() {
           onLinkClick={handleLinkClick}
           onTagClick={handleTagClick}
         />
+        )}
         {showRightPanel && (
           <RightPanel
             sections={rightPanelSections}
@@ -520,6 +553,15 @@ function AppContent() {
           setQuery={setCommandQuery}
           onClose={() => { setShowCommandPalette(false); setCommandQuery(""); }}
           onExecute={executeCommand}
+        />
+      )}
+      {showSettings && (
+        <SettingsModal
+          onClose={() => setShowSettings(false)}
+          onSave={async (config) => {
+            await window.api.config.set(config);
+            await reloadConfig();
+          }}
         />
       )}
     </div>

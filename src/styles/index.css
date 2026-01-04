@@ -1,0 +1,15 @@
+/* Main CSS Entry Point */
+
+/* Theme variables (must be first) */
+@import './themes/variables.css';
+@import './themes/dark.css';
+@import './themes/light.css';
+
+/* Component styles */
+@import './components/app.css';
+@import './components/nav.css';
+@import './components/sidebar.css';
+@import './components/editor.css';
+@import './components/right-panel.css';
+@import './components/modals.css';
+@import './components/syntax-highlighting.css';

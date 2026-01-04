@@ -1,5 +1,4 @@
 import { useRef, useEffect } from "react";
-import { styles } from "../styles/styles.js";
 
 interface Command {
   id: string;
@@ -33,8 +32,8 @@ export function CommandPalette({
     : commands;
 
   return (
-    <div style={styles.modalOverlay} onClick={onClose}>
-      <div style={styles.commandPalette} onClick={(e) => e.stopPropagation()}>
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="command-palette" onClick={(e) => e.stopPropagation()}>
         <input
           ref={inputRef}
           type="text"
@@ -50,21 +49,21 @@ export function CommandPalette({
             }
           }}
           placeholder="Type a command..."
-          style={styles.commandInput}
+          className="command-input"
           autoFocus
         />
-        <div style={styles.commandList}>
+        <div className="command-list">
           {filteredCommands.map((cmd) => (
             <div
               key={cmd.id}
               onClick={() => onExecute(cmd)}
-              style={styles.commandItem}
+              className="command-item"
             >
               {cmd.label}
             </div>
           ))}
           {filteredCommands.length === 0 && (
-            <div style={styles.commandEmpty}>No matching commands</div>
+            <div className="command-empty">No matching commands</div>
           )}
         </div>
       </div>

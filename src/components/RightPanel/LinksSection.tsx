@@ -1,5 +1,4 @@
 import type { Note } from "../../../shared/types.js";
-import { styles } from "../../styles/styles.js";
 
 interface LinksSectionProps {
   selectedNote: Note | null;
@@ -19,32 +18,29 @@ export function LinksSection({
   onSelectNote,
 }: LinksSectionProps) {
   if (!selectedNote) {
-    return <div style={styles.rightPanelEmpty}>Select a note to see links</div>;
+    return <div className="right-panel-empty">Select a note to see links</div>;
   }
 
   if (outgoingLinks.length === 0 && backlinks.length === 0) {
-    return <div style={styles.rightPanelEmpty}>No links</div>;
+    return <div className="right-panel-empty">No links</div>;
   }
 
   return (
     <>
       {outgoingLinks.length > 0 && (
         <>
-          <div style={styles.linksPanelHeader}>Outbound ({outgoingLinks.length})</div>
-          <ul style={styles.linksList}>
+          <div className="links-panel-header">Outbound ({outgoingLinks.length})</div>
+          <ul className="links-list">
             {outgoingLinks.map((link) => {
               const exists = notes.some((n) => n.title === link);
               return (
                 <li
                   key={link}
                   onClick={() => onLinkClick(link)}
-                  style={{
-                    ...styles.linkItem,
-                    color: exists ? "#6b9eff" : "#888",
-                  }}
+                  className={`link-item ${exists ? "exists" : "missing"}`}
                 >
                   {link}
-                  {!exists && <span style={styles.newBadge}>new</span>}
+                  {!exists && <span className="new-badge">new</span>}
                 </li>
               );
             })}
@@ -53,16 +49,13 @@ export function LinksSection({
       )}
       {backlinks.length > 0 && (
         <>
-          <div style={styles.linksPanelHeader}>Inbound ({backlinks.length})</div>
-          <ul style={styles.linksList}>
+          <div className="links-panel-header">Inbound ({backlinks.length})</div>
+          <ul className="links-list">
             {backlinks.map((note) => (
               <li
                 key={note.path}
                 onClick={() => onSelectNote(note)}
-                style={{
-                  ...styles.linkItem,
-                  color: "#6b9eff",
-                }}
+                className="link-item exists"
               >
                 {note.title}
               </li>

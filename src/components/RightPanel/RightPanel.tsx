@@ -1,6 +1,5 @@
 import { useState } from "react";
 import type { Note, RightPanelSection } from "../../../shared/types.js";
-import { styles } from "../../styles/styles.js";
 import { LinksSection } from "./LinksSection.js";
 import { RecentNotesSection } from "./RecentNotesSection.js";
 import { GraphView } from "./GraphView.js";
@@ -89,38 +88,39 @@ export function RightPanel({
     setDragOverSection(null);
   };
 
-  const renderSectionHeader = (section: RightPanelSection, label: string) => (
-    <div
-      style={{
-        ...styles.rightPanelSectionHeader,
-        ...(dragOverSection === section ? styles.dragOver : {}),
-        ...(draggedSection === section ? styles.dragging : {}),
-      }}
-      onClick={() => toggleSectionCollapse(section)}
-      draggable
-      onDragStart={(e) => handleDragStart(e, section)}
-      onDragOver={(e) => handleDragOver(e, section)}
-      onDragLeave={handleDragLeave}
-      onDrop={(e) => handleDrop(e, section)}
-      onDragEnd={handleDragEnd}
-    >
-      <span style={styles.dragHandle}>⋮⋮</span>
-      <span style={styles.collapseIcon}>
-        {collapsedSections.has(section) ? "▶" : "▼"}
-      </span>
-      {label}
-    </div>
-  );
+  const renderSectionHeader = (section: RightPanelSection, label: string) => {
+    const headerClasses = [
+      "right-panel-section-header",
+      dragOverSection === section ? "drag-over" : "",
+      draggedSection === section ? "dragging" : "",
+    ].filter(Boolean).join(" ");
+
+    return (
+      <div
+        className={headerClasses}
+        onClick={() => toggleSectionCollapse(section)}
+        draggable
+        onDragStart={(e) => handleDragStart(e, section)}
+        onDragOver={(e) => handleDragOver(e, section)}
+        onDragLeave={handleDragLeave}
+        onDrop={(e) => handleDrop(e, section)}
+        onDragEnd={handleDragEnd}
+      >
+        <span className="drag-handle">⋮⋮</span>
+        <span className="collapse-icon">
+          {collapsedSections.has(section) ? "▶" : "▼"}
+        </span>
+        {label}
+      </div>
+    );
+  };
 
   return (
-    <div style={styles.rightPanel}>
+    <div className="right-panel">
       {sections.map((section) => (
         <div
           key={section}
-          style={{
-            ...styles.rightPanelSection,
-            flex: collapsedSections.has(section) ? "none" : 1,
-          }}
+          className={`right-panel-section ${collapsedSections.has(section) ? "collapsed" : ""}`}
           onDragOver={(e) => handleDragOver(e, section)}
           onDrop={(e) => handleDrop(e, section)}
         >
@@ -128,7 +128,7 @@ export function RightPanel({
             <>
               {renderSectionHeader("recents", "Recent Notes")}
               {!collapsedSections.has("recents") && (
-                <div style={styles.rightPanelSectionContent}>
+                <div className="right-panel-section-content">
                   <RecentNotesSection
                     recentNotes={recentNotes}
                     notes={notes}
@@ -143,7 +143,7 @@ export function RightPanel({
             <>
               {renderSectionHeader("links", "Links")}
               {!collapsedSections.has("links") && (
-                <div style={styles.rightPanelSectionContent}>
+                <div className="right-panel-section-content">
                   <LinksSection
                     selectedNote={selectedNote}
                     outgoingLinks={outgoingLinks}
@@ -160,7 +160,7 @@ export function RightPanel({
             <>
               {renderSectionHeader("tags", "Tags")}
               {!collapsedSections.has("tags") && (
-                <div style={styles.rightPanelSectionContent}>
+                <div className="right-panel-section-content">
                   <TagsSection
                     selectedNote={selectedNote}
                     tags={tags}
@@ -174,7 +174,7 @@ export function RightPanel({
             <>
               {renderSectionHeader("graph", "Graph")}
               {!collapsedSections.has("graph") && (
-                <div style={styles.rightPanelGraphContainer}>
+                <div className="right-panel-graph-container">
                   <GraphView
                     notes={notes}
                     selectedNote={selectedNote}

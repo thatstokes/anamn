@@ -1,5 +1,4 @@
 import { useRef, useEffect } from "react";
-import { styles } from "../styles/styles.js";
 
 interface FindBarProps {
   findQuery: string;
@@ -27,7 +26,7 @@ export function FindBar({
   }, []);
 
   return (
-    <div style={styles.findBar}>
+    <div className="find-bar">
       <input
         ref={findInputRef}
         type="text"
@@ -42,23 +41,23 @@ export function FindBar({
           }
         }}
         placeholder="Find in note..."
-        style={styles.findInput}
+        className="find-input"
         autoFocus
       />
-      <span style={styles.findCount}>
+      <span className="find-count">
         {findMatches.length > 0
           ? `${currentMatchIndex + 1} / ${findMatches.length}`
           : findQuery
           ? "No matches"
           : ""}
       </span>
-      <button onClick={findPrevious} style={styles.findButton} title="Previous (Shift+Enter)">
+      <button onClick={findPrevious} className="find-button" title="Previous (Shift+Enter)">
         ↑
       </button>
-      <button onClick={findNext} style={styles.findButton} title="Next (Enter)">
+      <button onClick={findNext} className="find-button" title="Next (Enter)">
         ↓
       </button>
-      <button onClick={closeFindBar} style={styles.findButton} title="Close (Escape)">
+      <button onClick={closeFindBar} className="find-button" title="Close (Escape)">
         ×
       </button>
     </div>

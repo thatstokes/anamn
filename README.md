@@ -65,19 +65,142 @@ Example:
 
 ---
 
+### Markdown
+
+Anamn supports full Markdown with GitHub Flavored Markdown extensions and syntax highlighting.
+
+#### Text Formatting
+
+```markdown
+**Bold text** and *italic text*
+
+~~Strikethrough text~~
+
+`Inline code` for short snippets
+```
+
+#### Headings
+
+```markdown
+# Heading 1
+## Heading 2
+### Heading 3
+#### Heading 4
+```
+
+#### Lists
+
+```markdown
+- Unordered list item
+- Another item
+  - Nested item
+
+1. Ordered list item
+2. Another item
+   1. Nested numbered item
+```
+
+#### Task Lists
+
+```markdown
+- [x] Completed task
+- [ ] Incomplete task
+- [ ] Another todo
+```
+
+#### Blockquotes
+
+```markdown
+> This is a blockquote.
+> It can span multiple lines.
+>
+> And have multiple paragraphs.
+```
+
+#### Code Blocks
+
+Fenced code blocks with syntax highlighting for 190+ languages. Hover to reveal the copy button.
+
+````markdown
+```javascript
+function greet(name) {
+  return `Hello, ${name}!`;
+}
+```
+
+```python
+def fibonacci(n):
+    if n <= 1:
+        return n
+    return fibonacci(n-1) + fibonacci(n-2)
+```
+
+```sql
+SELECT users.name, COUNT(orders.id)
+FROM users
+LEFT JOIN orders ON users.id = orders.user_id
+GROUP BY users.id;
+```
+````
+
+#### Tables
+
+```markdown
+| Feature   | Status    | Notes              |
+|-----------|-----------|-------------------|
+| Tables    | Supported | With alignment    |
+| Task lists| Supported | Checkboxes work   |
+| Code      | Supported | Syntax highlighting|
+```
+
+#### Horizontal Rules
+
+```markdown
+---
+```
+
+#### Images
+
+```markdown
+![Alt text](path/to/image.png)
+```
+
+---
+
 ### Links
 
 Anamn uses explicit wiki-style links:
-```[[Agentic Reasoning]]```
 
+```markdown
+Check out [[Agentic Reasoning]] for more details.
+
+You can link to [[notes that don't exist yet]] and Anamn will create them when clicked.
+```
 
 Links:
-- Open the referenced note
+- Open the referenced note when clicked
 - Create edges in the knowledge graph
 - Enable backlinks and traversal
 - Form the foundation for future AI reasoning
 
-If a linked note does not exist, Anamn can create it.
+Missing links are styled differently so you can see which notes need to be created.
+
+---
+
+### Tags
+
+Use hashtags to categorize and find notes:
+
+```markdown
+This note is about #programming and #typescript.
+
+Tags can include hyphens: #my-project #work-in-progress
+```
+
+Tags:
+- Click any tag to search for all notes containing it
+- Visible in the right panel for the current note
+- Useful for cross-cutting categorization beyond links
 
 ---
 

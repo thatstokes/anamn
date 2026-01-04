@@ -1,5 +1,4 @@
 import { useRef, useEffect } from "react";
-import { styles } from "../../styles/styles.js";
 
 interface NewNoteInputProps {
   value: string;
@@ -21,7 +20,7 @@ export function NewNoteInput({
   }, []);
 
   return (
-    <div style={styles.newNoteInput}>
+    <div className="new-note-input">
       <input
         ref={inputRef}
         type="text"
@@ -33,7 +32,7 @@ export function NewNoteInput({
         }}
         placeholder="Note title..."
         autoFocus
-        style={styles.input}
+        className="new-note-input-field"
       />
     </div>
   );

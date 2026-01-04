@@ -116,12 +116,12 @@ describe("EditorHeader", () => {
     const editButton = screen.getByText("Edit");
     const viewButton = screen.getByText("View");
 
-    expect(editButton).toHaveStyle({ background: "#444" });
-    expect(viewButton).toHaveStyle({ background: "#333" });
+    expect(editButton).toHaveClass("active");
+    expect(viewButton).not.toHaveClass("active");
 
     rerender(<EditorHeader {...defaultProps} viewMode="rendered" />);
 
-    expect(editButton).toHaveStyle({ background: "#333" });
-    expect(viewButton).toHaveStyle({ background: "#444" });
+    expect(editButton).not.toHaveClass("active");
+    expect(viewButton).toHaveClass("active");
   });
 });

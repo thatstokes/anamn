@@ -30,6 +30,13 @@ export interface DailyNoteConfig {
   suffix: string;  // Text after date, default ""
 }
 
+export type ThemeMode = "dark" | "light" | "custom";
+
+export interface ThemeConfig {
+  mode: ThemeMode;
+  customCssPath?: string;  // Path to user's custom CSS file
+}
+
 export interface Config {
   notes_dir: string;
   default_view_mode: ViewMode;
@@ -40,11 +47,17 @@ export interface Config {
   collapsedSections: RightPanelSection[]; // Which sections are collapsed
   lastOpenedNote: string | null; // Path of the last opened note
   dailyNote: DailyNoteConfig; // Daily note settings
+  theme: ThemeConfig; // Theme settings
 }
 
 export interface ConfigApi {
   get: () => Promise<Config>;
   set: (updates: Partial<Config>) => Promise<Config>;
+}
+
+export interface ThemeApi {
+  loadCustomCss: (path: string) => Promise<string>;
+  selectCustomCss: () => Promise<string | null>;
 }
 
 export interface WorkspaceApi {
@@ -81,6 +94,7 @@ export interface Api {
   notes: NotesApi;
   config: ConfigApi;
   watcher: WatcherApi;
+  theme: ThemeApi;
 }
 
 declare global {

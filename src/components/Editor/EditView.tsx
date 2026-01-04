@@ -1,5 +1,4 @@
 import type { Note } from "../../../shared/types.js";
-import { styles } from "../../styles/styles.js";
 import { LinkAutocomplete } from "../LinkAutocomplete.js";
 
 interface LinkAutocompleteState {
@@ -29,13 +28,13 @@ export function EditView({
   onInsertLink,
 }: EditViewProps) {
   return (
-    <div style={styles.textareaContainer}>
+    <div className="textarea-container">
       <textarea
         ref={textareaRef}
         value={content}
         onChange={onTextareaChange}
         onKeyDown={onTextareaKeyDown}
-        style={styles.textarea}
+        className="textarea"
       />
       {linkAutocomplete.show && linkSuggestions.length > 0 && (
         <LinkAutocomplete

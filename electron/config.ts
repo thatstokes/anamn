@@ -24,6 +24,13 @@ export interface DailyNoteConfig {
   suffix: string;  // Text after date, default ""
 }
 
+export type ThemeMode = "dark" | "light" | "custom";
+
+export interface ThemeConfig {
+  mode: ThemeMode;
+  customCssPath?: string;  // Path to user's custom CSS file
+}
+
 export interface Config {
   notes_dir: string;
   default_view_mode: ViewMode;
@@ -34,6 +41,7 @@ export interface Config {
   collapsedSections: RightPanelSection[]; // Which sections are collapsed
   lastOpenedNote: string | null; // Path of the last opened note
   dailyNote: DailyNoteConfig; // Daily note settings
+  theme: ThemeConfig; // Theme settings
 }
 
 const DEFAULT_SHORTCUTS: KeyboardShortcuts = {
@@ -53,6 +61,10 @@ const DEFAULT_DAILY_NOTE: DailyNoteConfig = {
   suffix: "",
 };
 
+const DEFAULT_THEME: ThemeConfig = {
+  mode: "dark",
+};
+
 const DEFAULT_CONFIG: Config = {
   notes_dir: "",
   default_view_mode: "rendered",
@@ -63,6 +75,7 @@ const DEFAULT_CONFIG: Config = {
   collapsedSections: [],
   lastOpenedNote: null,
   dailyNote: DEFAULT_DAILY_NOTE,
+  theme: DEFAULT_THEME,
 };
 
 const CONFIG_FILENAME = "anamn.config.json";
@@ -105,6 +118,10 @@ export async function loadConfig(): Promise<Config> {
         dailyNote: {
           ...config.dailyNote,
           ...(parsed.dailyNote ?? {}),
+        },
+        theme: {
+          ...config.theme,
+          ...(parsed.theme ?? {}),
         },
         // Only override arrays if explicitly provided
         recentNotes: parsed.recentNotes ?? config.recentNotes,

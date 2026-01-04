@@ -1,0 +1,100 @@
+/* Syntax Highlighting - highlight.js class mappings */
+
+/* Base code styling */
+.hljs {
+  color: var(--text-primary);
+  background: var(--bg-code);
+}
+
+/* Comments */
+.hljs-comment,
+.hljs-quote {
+  color: var(--hl-comment);
+  font-style: italic;
+}
+
+/* Keywords */
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-addition {
+  color: var(--hl-keyword);
+}
+
+/* Strings */
+.hljs-string,
+.hljs-doctag,
+.hljs-regexp {
+  color: var(--hl-string);
+}
+
+/* Numbers */
+.hljs-number,
+.hljs-literal {
+  color: var(--hl-number);
+}
+
+/* Functions */
+.hljs-title,
+.hljs-section,
+.hljs-name {
+  color: var(--hl-function);
+}
+
+/* Variables */
+.hljs-variable,
+.hljs-template-variable {
+  color: var(--hl-variable);
+}
+
+/* Types */
+.hljs-type,
+.hljs-class .hljs-title,
+.hljs-built_in {
+  color: var(--hl-type);
+}
+
+/* Attributes */
+.hljs-attribute,
+.hljs-attr {
+  color: var(--hl-attribute);
+}
+
+/* Tags (HTML/XML) */
+.hljs-tag {
+  color: var(--hl-tag);
+}
+
+/* Selectors (CSS) */
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-selector-attr,
+.hljs-selector-pseudo {
+  color: var(--hl-selector);
+}
+
+/* Operators and punctuation */
+.hljs-symbol,
+.hljs-bullet,
+.hljs-link {
+  color: var(--hl-operator);
+}
+
+/* Meta and preprocessor */
+.hljs-meta,
+.hljs-meta .hljs-keyword {
+  color: var(--hl-keyword);
+}
+
+/* Deletion */
+.hljs-deletion {
+  color: #f44747;
+}
+
+/* Emphasis */
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: bold;
+}

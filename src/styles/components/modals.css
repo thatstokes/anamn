@@ -1,0 +1,419 @@
+/* Modal Overlay */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 100px;
+  z-index: 1000;
+}
+
+/* Command Palette */
+
+.command-palette {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  width: 500px;
+  max-width: 90vw;
+  box-shadow: var(--shadow-modal);
+  overflow: hidden;
+}
+
+.command-input {
+  width: 100%;
+  padding: 1rem;
+  background: var(--bg-secondary);
+  border: none;
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-primary);
+  font-size: 16px;
+  outline: none;
+}
+
+.command-list {
+  max-height: 300px;
+  overflow: auto;
+}
+
+.command-item {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.command-item:hover {
+  background: var(--bg-hover);
+}
+
+.command-item.selected {
+  background: var(--bg-selected);
+}
+
+.command-empty {
+  padding: 1rem;
+  color: var(--text-muted);
+  text-align: center;
+  font-style: italic;
+}
+
+/* Context Menu */
+
+.context-menu {
+  position: fixed;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+  z-index: 1000;
+  min-width: 120px;
+}
+
+.context-menu-item {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.context-menu-item:hover {
+  background: var(--bg-hover);
+}
+
+/* Settings Modal */
+
+.settings-modal {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  width: 700px;
+  max-width: 90vw;
+  max-height: 80vh;
+  box-shadow: var(--shadow-modal);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.settings-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+  font-size: 16px;
+  color: var(--text-primary);
+}
+
+.settings-close-button {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.settings-close-button:hover {
+  color: var(--text-primary);
+}
+
+.settings-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.settings-sidebar {
+  width: 160px;
+  border-right: 1px solid var(--border-light);
+  padding: 0.5rem 0;
+  background: var(--bg-tertiary);
+}
+
+.settings-sidebar-item {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.settings-sidebar-item:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.settings-sidebar-item.active {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border-left: 3px solid var(--accent-primary);
+}
+
+.settings-content {
+  flex: 1;
+  padding: 1.25rem;
+  overflow: auto;
+}
+
+.settings-footer {
+  padding: 1rem 1.25rem;
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.settings-button {
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 14px;
+  border: 1px solid var(--border-light);
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.settings-button:hover {
+  background: var(--bg-active);
+}
+
+.settings-button.primary {
+  background: var(--accent-button);
+  border: 1px solid var(--accent-button);
+  color: white;
+}
+
+.settings-button.primary:hover {
+  opacity: 0.9;
+}
+
+.settings-loading {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+/* Settings Form Elements */
+
+.settings-section-title {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+}
+
+.settings-label {
+  display: block;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.settings-input {
+  width: 100%;
+  padding: 0.5rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 14px;
+  margin-bottom: 1rem;
+}
+
+.settings-input:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+}
+
+.settings-input.error {
+  border-color: #ff6b6b;
+}
+
+.settings-help-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.settings-radio-group {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.settings-radio-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.settings-preview {
+  padding: 0.75rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--accent-secondary);
+  margin-bottom: 1rem;
+}
+
+.settings-preview.error {
+  color: #ff6b6b;
+}
+
+/* Settings Shortcuts Table */
+
+.settings-shortcut-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.settings-shortcut-row {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.settings-shortcut-cell {
+  padding: 0.5rem;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.settings-shortcut-cell.label-cell {
+  width: 40%;
+}
+
+.settings-shortcut-cell.key-cell {
+  width: 35%;
+}
+
+.settings-shortcut-cell.action-cell {
+  width: 25%;
+  text-align: right;
+}
+
+.settings-shortcut-key {
+  background: var(--bg-hover);
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-family: monospace;
+  display: inline-block;
+}
+
+.settings-shortcut-record-btn {
+  padding: 0.25rem 0.5rem;
+  background: var(--bg-hover);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.settings-shortcut-record-btn:hover {
+  background: var(--bg-active);
+}
+
+.settings-shortcut-record-btn.disabled {
+  opacity: 0.5;
+}
+
+.settings-shortcut-key.recording {
+  background: #4a3d1a;
+}
+
+.settings-shortcut-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.settings-recording-hint {
+  font-size: 12px;
+  color: #8b7355;
+  margin-top: 1rem;
+}
+
+/* Settings Section Items (Appearance) */
+
+.settings-section-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  background: var(--bg-hover);
+  border-radius: var(--radius-sm);
+  margin-bottom: 0.5rem;
+  cursor: grab;
+}
+
+.settings-section-item:active {
+  cursor: grabbing;
+}
+
+.settings-section-item.disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.settings-section-checkbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.settings-section-label {
+  flex: 1;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.settings-drag-handle {
+  color: var(--text-muted);
+  font-size: 14px;
+  cursor: grab;
+}
+
+/* Graph Modal */
+
+.graph-container {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-modal);
+  overflow: hidden;
+}
+
+.graph-header {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--text-primary);
+  font-weight: bold;
+}
+
+.close-button {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0 0.5rem;
+}
+
+.close-button:hover {
+  color: var(--text-primary);
+}

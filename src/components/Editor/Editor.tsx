@@ -1,5 +1,4 @@
 import type { Note, ViewMode } from "../../../shared/types.js";
-import { styles } from "../../styles/styles.js";
 import { FindBar } from "../FindBar.js";
 import { EditorHeader } from "./EditorHeader.js";
 import { EditView } from "./EditView.js";
@@ -81,14 +80,14 @@ export function Editor({
 }: EditorProps) {
   if (!selectedNote) {
     return (
-      <div style={styles.editor}>
-        <div style={styles.placeholder}>Select a note or create a new one</div>
+      <div className="editor">
+        <div className="placeholder">Select a note or create a new one</div>
       </div>
     );
   }
 
   return (
-    <div style={styles.editor}>
+    <div className="editor">
       <EditorHeader
         selectedNote={selectedNote}
         isRenaming={isRenaming}

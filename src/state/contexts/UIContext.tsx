@@ -17,6 +17,13 @@ interface UIContextValue {
   setShowCommandPalette: React.Dispatch<React.SetStateAction<boolean>>;
   commandQuery: string;
   setCommandQuery: React.Dispatch<React.SetStateAction<string>>;
+  // Settings
+  showSettings: boolean;
+  setShowSettings: React.Dispatch<React.SetStateAction<boolean>>;
+  reloadConfig: () => Promise<void>;
+  // Graph view
+  showGraphView: boolean;
+  setShowGraphView: React.Dispatch<React.SetStateAction<boolean>>;
   // Search
   searchQuery: string;
   setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
@@ -35,6 +42,8 @@ export function UIProvider({ children }: { children: React.ReactNode }) {
   const [shortcuts, setShortcuts] = useState<KeyboardShortcuts | null>(null);
   const [showRightPanel, setShowRightPanel] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showGraphView, setShowGraphView] = useState(false);
   const [commandQuery, setCommandQuery] = useState("");
   const [rightPanelSections, setRightPanelSections] = useState<RightPanelSection[]>(["links", "graph"]);
   const [collapsedSections, setCollapsedSections] = useState<Set<RightPanelSection>>(new Set());
@@ -49,15 +58,19 @@ export function UIProvider({ children }: { children: React.ReactNode }) {
   const commandInputRef = useRef<HTMLInputElement>(null);
   const findInputRef = useRef<HTMLInputElement>(null);
 
+  // Reload config (used after settings save)
+  const reloadConfig = useCallback(async () => {
+    const config = await window.api.config.get();
+    setShortcuts(config.shortcuts);
+    setRightPanelSections(config.rightPanelSections);
+    setShowRightPanel(config.rightPanelOpen);
+    setCollapsedSections(new Set(config.collapsedSections));
+  }, []);
+
   // Load config on mount
   useEffect(() => {
-    window.api.config.get().then((config) => {
-      setShortcuts(config.shortcuts);
-      setRightPanelSections(config.rightPanelSections);
-      setShowRightPanel(config.rightPanelOpen);
-      setCollapsedSections(new Set(config.collapsedSections));
-    });
-  }, []);
+    reloadConfig();
+  }, [reloadConfig]);
 
   const toggleSectionCollapse = useCallback((section: RightPanelSection) => {
     setCollapsedSections((prev) => {
@@ -84,6 +97,11 @@ export function UIProvider({ children }: { children: React.ReactNode }) {
     setShowCommandPalette,
     commandQuery,
     setCommandQuery,
+    showSettings,
+    setShowSettings,
+    reloadConfig,
+    showGraphView,
+    setShowGraphView,
     searchQuery,
     setSearchQuery,
     searchResults,
@@ -100,6 +118,9 @@ export function UIProvider({ children }: { children: React.ReactNode }) {
     toggleSectionCollapse,
     showCommandPalette,
     commandQuery,
+    showSettings,
+    reloadConfig,
+    showGraphView,
     searchQuery,
     searchResults,
     isSearching,

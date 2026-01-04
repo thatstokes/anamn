@@ -24,6 +24,10 @@ const api: Api = {
     get: () => ipcRenderer.invoke("config:get"),
     set: (updates) => ipcRenderer.invoke("config:set", updates),
   },
+  theme: {
+    loadCustomCss: (path: string) => ipcRenderer.invoke("theme:loadCustomCss", path),
+    selectCustomCss: () => ipcRenderer.invoke("theme:selectCustomCss"),
+  },
   watcher: {
     onFileAdded: (callback: (event: FileChangeEvent) => void) => {
       const handler = (_: IpcRendererEvent, event: FileChangeEvent) => callback(event);

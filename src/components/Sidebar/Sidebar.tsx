@@ -1,5 +1,4 @@
 import type { Note } from "../../../shared/types.js";
-import { styles } from "../../styles/styles.js";
 import { NewNoteInput } from "./NewNoteInput.js";
 import { NoteList } from "./NoteList.js";
 
@@ -10,7 +9,6 @@ interface SidebarProps {
   setNewNoteTitle: React.Dispatch<React.SetStateAction<string | null>>;
   onSelectNote: (note: Note) => void;
   onCreateNote: () => void;
-  onOpenDaily: () => void;
   onContextMenu: (e: React.MouseEvent, note: Note) => void;
   onChangeWorkspace: () => void;
 }
@@ -22,18 +20,13 @@ export function Sidebar({
   setNewNoteTitle,
   onSelectNote,
   onCreateNote,
-  onOpenDaily,
   onContextMenu,
   onChangeWorkspace,
 }: SidebarProps) {
   return (
-    <div style={styles.sidebar}>
-      <div style={styles.sidebarHeader}>
+    <div className="sidebar">
+      <div className="sidebar-header">
         <strong>Notes</strong>
-        <div style={{ display: "flex", gap: "4px" }}>
-          <button onClick={onOpenDaily} style={styles.newButton} title="Open Daily Note (Ctrl+D)">D</button>
-          <button onClick={onCreateNote} style={styles.newButton} title="New Note (Ctrl+N)">+</button>
-        </div>
       </div>
       {newNoteTitle !== null && (
         <NewNoteInput
@@ -49,7 +42,7 @@ export function Sidebar({
         onSelectNote={onSelectNote}
         onContextMenu={onContextMenu}
       />
-      <button onClick={onChangeWorkspace} style={styles.changeFolder}>
+      <button onClick={onChangeWorkspace} className="change-folder">
         Change Folder
       </button>
     </div>

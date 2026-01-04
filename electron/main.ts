@@ -3,12 +3,14 @@ import path from "path";
 import { registerWorkspaceHandlers, initWorkspace } from "./ipc/workspace.js";
 import { registerNotesHandlers } from "./ipc/notes.js";
 import { registerConfigHandlers } from "./ipc/config.js";
+import { registerThemeHandlers } from "./ipc/theme.js";
 
 const isDev = !app.isPackaged;
 
 registerWorkspaceHandlers();
 registerNotesHandlers();
 registerConfigHandlers();
+registerThemeHandlers();
 
 function createWindow() {
   const win = new BrowserWindow({

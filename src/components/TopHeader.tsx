@@ -1,5 +1,4 @@
 import type { Note } from "../../shared/types.js";
-import { styles } from "../styles/styles.js";
 import { useUI } from "../state/contexts/UIContext.js";
 
 interface TopHeaderProps {
@@ -18,30 +17,30 @@ export function TopHeader({ selectedNote, onSelectNote }: TopHeaderProps) {
     searchInputRef,
   } = useUI();
   return (
-    <div style={styles.topHeader}>
-      <div style={styles.topHeaderTitle}>Anamn</div>
-      <div style={styles.topHeaderSearch}>
+    <div className="top-header">
+      <div className="top-header-title">Anamn</div>
+      <div className="top-header-search">
         <input
           ref={searchInputRef}
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search notes... (Ctrl+P)"
-          style={styles.topHeaderSearchInput}
+          className="top-header-search-input"
         />
         {searchQuery && (
           <>
             <button
               onClick={() => setSearchQuery("")}
-              style={styles.clearSearch}
+              className="clear-search"
             >
               ×
             </button>
-            <div style={styles.searchDropdown}>
+            <div className="search-dropdown">
               {isSearching ? (
-                <div style={styles.searchDropdownItem}>Searching...</div>
+                <div className="search-dropdown-item">Searching...</div>
               ) : searchResults.length === 0 ? (
-                <div style={styles.searchDropdownItem}>No results found</div>
+                <div className="search-dropdown-item">No results found</div>
               ) : (
                 searchResults.map((result) => (
                   <div
@@ -50,14 +49,11 @@ export function TopHeader({ selectedNote, onSelectNote }: TopHeaderProps) {
                       onSelectNote(result.note);
                       setSearchQuery("");
                     }}
-                    style={{
-                      ...styles.searchDropdownItem,
-                      background: selectedNote?.path === result.note.path ? "#3a3a3a" : "transparent",
-                    }}
+                    className={`search-dropdown-item ${selectedNote?.path === result.note.path ? "selected" : ""}`}
                   >
                     <div>{result.note.title}</div>
                     {result.snippet && (
-                      <div style={styles.searchSnippet}>{result.snippet}</div>
+                      <div className="search-snippet">{result.snippet}</div>
                     )}
                   </div>
                 ))
@@ -66,13 +62,10 @@ export function TopHeader({ selectedNote, onSelectNote }: TopHeaderProps) {
           </>
         )}
       </div>
-      <div style={styles.topHeaderActions}>
+      <div className="top-header-actions">
         <button
           onClick={() => setShowRightPanel(!showRightPanel)}
-          style={{
-            ...styles.topHeaderButton,
-            background: showRightPanel ? "#444" : "transparent",
-          }}
+          className={`top-header-button ${showRightPanel ? "active" : ""}`}
           title="Toggle right panel (Ctrl+G)"
         >
           ☰ Panel

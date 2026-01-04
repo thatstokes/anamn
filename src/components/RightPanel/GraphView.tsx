@@ -255,13 +255,13 @@ export function GraphView({
   return (
     <div
       ref={containerRef}
-      style={{ flex: 1, background: "#1a1a1a", overflow: "hidden" }}
+      className="graph-view-container"
     >
       <canvas
         ref={canvasRef}
         width={size.width}
         height={size.height}
-        style={{ cursor: hoveredNode ? "pointer" : "default" }}
+        className={hoveredNode ? "cursor-pointer" : ""}
         onMouseMove={handleMouseMove}
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}

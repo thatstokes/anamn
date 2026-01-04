@@ -23,6 +23,10 @@ var api = {
     get: () => import_electron.ipcRenderer.invoke("config:get"),
     set: (updates) => import_electron.ipcRenderer.invoke("config:set", updates)
   },
+  theme: {
+    loadCustomCss: (path) => import_electron.ipcRenderer.invoke("theme:loadCustomCss", path),
+    selectCustomCss: () => import_electron.ipcRenderer.invoke("theme:selectCustomCss")
+  },
   watcher: {
     onFileAdded: (callback) => {
       const handler = (_, event) => callback(event);

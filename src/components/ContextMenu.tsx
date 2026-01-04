@@ -1,5 +1,4 @@
 import type { Note } from "../../shared/types.js";
-import { styles } from "../styles/styles.js";
 
 interface ContextMenuProps {
   note: Note;
@@ -17,16 +16,13 @@ export function ContextMenu({
 }: ContextMenuProps) {
   return (
     <div
-      style={{
-        ...styles.contextMenu,
-        left: x,
-        top: y,
-      }}
+      className="context-menu"
+      style={{ left: x, top: y }}
     >
-      <div style={styles.contextMenuItem} onClick={onRename}>
+      <div className="context-menu-item" onClick={onRename}>
         Rename
       </div>
-      <div style={styles.contextMenuItem} onClick={onDelete}>
+      <div className="context-menu-item" onClick={onDelete}>
         Delete
       </div>
     </div>

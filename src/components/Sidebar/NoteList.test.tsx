@@ -49,10 +49,10 @@ describe("NoteList", () => {
     render(<NoteList {...defaultProps} selectedNote={mockNotes[1]!} />);
 
     const selectedItem = screen.getByText("Note 2").closest("li");
-    expect(selectedItem).toHaveStyle({ background: "#3a3a3a" });
+    expect(selectedItem).toHaveClass("selected");
 
     const unselectedItem = screen.getByText("Note 1").closest("li");
-    expect(unselectedItem).toHaveStyle({ background: "transparent" });
+    expect(unselectedItem).not.toHaveClass("selected");
   });
 
   it("should handle keyboard navigation with ArrowDown", () => {

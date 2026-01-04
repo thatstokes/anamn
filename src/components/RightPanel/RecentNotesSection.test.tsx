@@ -57,10 +57,10 @@ describe("RecentNotesSection", () => {
       />
     );
 
-    const note1 = screen.getByText("Note 1");
-    const note2 = screen.getByText("Note 2");
+    const note1 = screen.getByText("Note 1").closest("li");
+    const note2 = screen.getByText("Note 2").closest("li");
 
-    expect(note1).toHaveStyle({ color: "#6b9eff" });
-    expect(note2).toHaveStyle({ color: "#e0e0e0" });
+    expect(note1).toHaveClass("selected");
+    expect(note2).not.toHaveClass("selected");
   });
 });

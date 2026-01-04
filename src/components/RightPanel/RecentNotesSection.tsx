@@ -1,5 +1,4 @@
 import type { Note } from "../../../shared/types.js";
-import { styles } from "../../styles/styles.js";
 
 interface RecentNotesSectionProps {
   recentNotes: string[];
@@ -15,22 +14,20 @@ export function RecentNotesSection({
   onSelectNote,
 }: RecentNotesSectionProps) {
   if (recentNotes.length === 0) {
-    return <div style={styles.rightPanelEmpty}>No recent notes</div>;
+    return <div className="right-panel-empty">No recent notes</div>;
   }
 
   return (
-    <ul style={styles.linksList}>
+    <ul className="links-list">
       {recentNotes.map((title) => {
         const note = notes.find((n) => n.title === title);
         if (!note) return null;
+        const isSelected = selectedNote?.title === title;
         return (
           <li
             key={title}
             onClick={() => onSelectNote(note)}
-            style={{
-              ...styles.linkItem,
-              color: selectedNote?.title === title ? "#6b9eff" : "#e0e0e0",
-            }}
+            className={`link-item ${isSelected ? "selected" : ""}`}
           >
             {title}
           </li>

@@ -1,5 +1,4 @@
 import type { Note, ViewMode } from "../../../shared/types.js";
-import { styles } from "../../styles/styles.js";
 
 interface EditorHeaderProps {
   selectedNote: Note;
@@ -27,7 +26,7 @@ export function EditorHeader({
   setViewMode,
 }: EditorHeaderProps) {
   return (
-    <div style={styles.editorHeader}>
+    <div className="editor-header">
       {isRenaming ? (
         <input
           type="text"
@@ -39,41 +38,35 @@ export function EditorHeader({
             if (e.key === "Escape") onCancelRename();
           }}
           autoFocus
-          style={styles.renameTitleInput}
+          className="rename-title-input"
         />
       ) : (
         <span
           onClick={onStartRename}
-          style={styles.editableTitle}
+          className="editable-title"
           title="Click to rename"
         >
           {selectedNote.title}
         </span>
       )}
-      <div style={styles.editorActions}>
+      <div className="editor-actions">
         <button
           onClick={onDelete}
-          style={styles.deleteButton}
+          className="delete-button"
           title="Delete note"
         >
           🗑
         </button>
-        <div style={styles.viewModeToggle}>
+        <div className="view-mode-toggle">
           <button
             onClick={() => setViewMode("edit")}
-            style={{
-              ...styles.viewModeButton,
-              background: viewMode === "edit" ? "#444" : "#333",
-            }}
+            className={`view-mode-button ${viewMode === "edit" ? "active" : ""}`}
           >
             Edit
           </button>
           <button
             onClick={() => setViewMode("rendered")}
-            style={{
-              ...styles.viewModeButton,
-              background: viewMode === "rendered" ? "#444" : "#333",
-            }}
+            className={`view-mode-button ${viewMode === "rendered" ? "active" : ""}`}
           >
             View
           </button>

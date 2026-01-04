@@ -1,0 +1,40 @@
+/* Light Theme */
+[data-theme="light"] {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f5f5;
+  --bg-tertiary: #fafafa;
+  --bg-hover: #e8e8e8;
+  --bg-active: #d0d0d0;
+  --bg-selected: #e0e0e0;
+  --bg-code: #f5f5f5;
+
+  --border-color: #e0e0e0;
+  --border-light: #d0d0d0;
+
+  --text-primary: #1a1a1a;
+  --text-secondary: #666666;
+  --text-muted: #999999;
+  --text-link: #2563eb;
+
+  --accent-primary: #2563eb;
+  --accent-secondary: #3b82f6;
+  --accent-bg: #dbeafe;
+  --accent-button: #2563eb;
+
+  --shadow-dropdown: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-modal: 0 4px 20px rgba(0, 0, 0, 0.15);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  /* Syntax Highlighting - Light */
+  --hl-keyword: #af00db;
+  --hl-string: #a31515;
+  --hl-number: #098658;
+  --hl-function: #795e26;
+  --hl-comment: #008000;
+  --hl-variable: #001080;
+  --hl-type: #267f99;
+  --hl-operator: #000000;
+  --hl-attribute: #001080;
+  --hl-tag: #800000;
+  --hl-selector: #800000;
+}

@@ -15,7 +15,6 @@ describe("Sidebar", () => {
     setNewNoteTitle: vi.fn(),
     onSelectNote: vi.fn(),
     onCreateNote: vi.fn(),
-    onOpenDaily: vi.fn(),
     onContextMenu: vi.fn(),
     onChangeWorkspace: vi.fn(),
   };
@@ -28,20 +27,6 @@ describe("Sidebar", () => {
     render(<Sidebar {...defaultProps} />);
 
     expect(screen.getByText("Notes")).toBeInTheDocument();
-  });
-
-  it("should render the new note button", () => {
-    render(<Sidebar {...defaultProps} />);
-
-    expect(screen.getByText("+")).toBeInTheDocument();
-  });
-
-  it("should call onCreateNote when clicking the new note button", () => {
-    render(<Sidebar {...defaultProps} />);
-
-    fireEvent.click(screen.getByText("+"));
-
-    expect(defaultProps.onCreateNote).toHaveBeenCalled();
   });
 
   it("should render notes list", () => {

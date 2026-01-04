@@ -1,6 +1,8 @@
+import { useState, useCallback } from "react";
 import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeHighlight from "rehype-highlight";
 import type { Note } from "../../../shared/types.js";
-import { styles } from "../../styles/styles.js";
 
 interface RenderedViewProps {
   content: string;
@@ -8,6 +10,44 @@ interface RenderedViewProps {
   renderedViewRef: React.RefObject<HTMLDivElement | null>;
   onLinkClick: (linkTitle: string) => void;
   onTagClick: (tag: string) => void;
+}
+
+function CodeBlock({ children, ...props }: React.HTMLAttributes<HTMLPreElement>) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback(() => {
+    // Extract text content from children
+    const extractText = (node: React.ReactNode): string => {
+      if (typeof node === "string") return node;
+      if (typeof node === "number") return String(node);
+      if (!node) return "";
+      if (Array.isArray(node)) return node.map(extractText).join("");
+      if (typeof node === "object" && "props" in node) {
+        const props = node.props as { children?: React.ReactNode };
+        return extractText(props.children);
+      }
+      return "";
+    };
+
+    const text = extractText(children);
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }, [children]);
+
+  return (
+    <div className="code-block-wrapper">
+      <button
+        className={`code-copy-button ${copied ? "copied" : ""}`}
+        onClick={handleCopy}
+        title="Copy code"
+      >
+        {copied ? "Copied!" : "Copy"}
+      </button>
+      <pre {...props}>{children}</pre>
+    </div>
+  );
 }
 
 export function RenderedView({
@@ -37,7 +77,7 @@ export function RenderedView({
         <span
           key={`${keyPrefix}-tag-${match.index}`}
           onClick={() => onTagClick(tagText ?? "")}
-          style={styles.tagInContent}
+          className="tag-in-content"
         >
           #{tagText}
         </span>
@@ -72,10 +112,7 @@ export function RenderedView({
           <span
             key={match.index}
             onClick={() => onLinkClick(linkTitle ?? "")}
-            style={{
-              ...styles.wikiLink,
-              color: exists ? "#6b9eff" : "#888",
-            }}
+            className={`wiki-link ${exists ? "exists" : "missing"}`}
           >
             {linkTitle}
           </span>
@@ -98,14 +135,30 @@ export function RenderedView({
   };
 
   return (
-    <div ref={renderedViewRef} style={styles.renderedView}>
+    <div ref={renderedViewRef} className="rendered-view">
       <Markdown
+        remarkPlugins={[remarkGfm]}
+        rehypePlugins={[rehypeHighlight]}
         components={{
           p: ({ children }) => (
-            <p style={styles.renderedP}>{processWikiLinks(children)}</p>
+            <p className="rendered-p">{processWikiLinks(children)}</p>
           ),
           li: ({ children }) => (
             <li>{processWikiLinks(children)}</li>
+          ),
+          h1: ({ children }) => <h1>{processWikiLinks(children)}</h1>,
+          h2: ({ children }) => <h2>{processWikiLinks(children)}</h2>,
+          h3: ({ children }) => <h3>{processWikiLinks(children)}</h3>,
+          h4: ({ children }) => <h4>{processWikiLinks(children)}</h4>,
+          h5: ({ children }) => <h5>{processWikiLinks(children)}</h5>,
+          h6: ({ children }) => <h6>{processWikiLinks(children)}</h6>,
+          blockquote: ({ children }) => (
+            <blockquote>{children}</blockquote>
+          ),
+          td: ({ children }) => <td>{processWikiLinks(children)}</td>,
+          th: ({ children }) => <th>{processWikiLinks(children)}</th>,
+          pre: ({ children, ...props }) => (
+            <CodeBlock {...props}>{children}</CodeBlock>
           ),
         }}
       >

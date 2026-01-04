@@ -1,6 +1,5 @@
 import { useRef, useState, useCallback } from "react";
 import type { Note } from "../../../shared/types.js";
-import { styles } from "../../styles/styles.js";
 
 interface NoteListProps {
   notes: Note[];
@@ -71,27 +70,26 @@ export function NoteList({
   return (
     <ul
       ref={noteListRef}
-      style={styles.noteList}
+      className="note-list"
       tabIndex={0}
       onKeyDown={handleKeyDown}
       onFocus={handleFocus}
       onBlur={handleBlur}
     >
-      {notes.map((note, index) => (
-        <li
-          key={note.path}
-          onClick={() => onSelectNote(note)}
-          onContextMenu={(e) => onContextMenu(e, note)}
-          style={{
-            ...styles.noteItem,
-            background: selectedNote?.path === note.path ? "#3a3a3a" : "transparent",
-            outline: hasFocus && focusedNoteIndex === index ? "1px solid #6b9eff" : "none",
-            outlineOffset: "-1px",
-          }}
-        >
-          {note.title}
-        </li>
-      ))}
+      {notes.map((note, index) => {
+        const isSelected = selectedNote?.path === note.path;
+        const isFocused = hasFocus && focusedNoteIndex === index;
+        return (
+          <li
+            key={note.path}
+            onClick={() => onSelectNote(note)}
+            onContextMenu={(e) => onContextMenu(e, note)}
+            className={`note-item ${isSelected ? "selected" : ""} ${isFocused ? "focused" : ""}`}
+          >
+            {note.title}
+          </li>
+        );
+      })}
     </ul>
   );
 }
