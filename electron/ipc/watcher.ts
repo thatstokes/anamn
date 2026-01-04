@@ -49,19 +49,22 @@ export function startWatcher(workspacePath: string): void {
   // Stop any existing watcher
   stopWatcher();
 
-  const pattern = path.join(workspacePath, "*.md");
-
-  watcher = chokidar.watch(pattern, {
+  watcher = chokidar.watch(workspacePath, {
     ignoreInitial: true, // Don't emit events for existing files
+    depth: 0, // Only watch the directory itself, not subdirectories
     awaitWriteFinish: {
       stabilityThreshold: 100,
       pollInterval: 50,
     },
     // Ignore temp files from atomic writes
     ignored: /\.tmp$/,
+    // Use polling for better cross-platform compatibility
+    usePolling: true,
+    interval: 300,
   });
 
   watcher.on("add", (filePath) => {
+    if (!filePath.endsWith(".md")) return;
     if (shouldIgnoreChange(filePath)) return;
 
     const title = path.basename(filePath, ".md");
@@ -69,6 +72,7 @@ export function startWatcher(workspacePath: string): void {
   });
 
   watcher.on("change", (filePath) => {
+    if (!filePath.endsWith(".md")) return;
     if (shouldIgnoreChange(filePath)) return;
 
     const title = path.basename(filePath, ".md");
@@ -76,6 +80,7 @@ export function startWatcher(workspacePath: string): void {
   });
 
   watcher.on("unlink", (filePath) => {
+    if (!filePath.endsWith(".md")) return;
     if (shouldIgnoreChange(filePath)) return;
 
     const title = path.basename(filePath, ".md");
@@ -83,7 +88,7 @@ export function startWatcher(workspacePath: string): void {
   });
 
   watcher.on("error", (error) => {
-    console.error("Watcher error:", error);
+    console.error("File watcher error:", error);
   });
 }
 
