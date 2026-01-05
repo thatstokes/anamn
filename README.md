@@ -147,13 +147,15 @@ GROUP BY users.id;
 
 Anamn renders chess positions and games directly in your notes.
 
-**FEN positions** — Use a `fen` code block to display a static board position:
+**FEN positions** — Use a `fen` code block to display a board position:
 
 ````markdown
 ```fen
 rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1
 ```
 ````
+
+FEN positions support engine analysis (click the gear icon) and opening detection.
 
 **PGN games** — Use a `pgn` code block for interactive game viewers:
 
@@ -172,9 +174,12 @@ PGN viewer controls:
 - **Eval bar** — Visual advantage indicator (white on bottom, black on top)
 - **Score** — Numeric evaluation (e.g., +0.45 means white is ahead by ~half a pawn)
 - **Best move** — Engine's recommended move in standard notation
+- **Best move arrow** — Green arrow overlay on the board showing the recommended move
 - **Line** — Principal variation (the best sequence of moves)
 
 Mate scores display as `M+3` (white mates in 3) or `M-2` (black mates in 2).
+
+**Opening Detection** — Anamn automatically identifies chess openings using the ECO (Encyclopaedia of Chess Openings) database. When a position matches a known opening, the ECO code and opening name are displayed (e.g., "B90 · Sicilian Defense: Najdorf Variation").
 
 #### Tables
 
