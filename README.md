@@ -143,6 +143,39 @@ GROUP BY users.id;
 ```
 ````
 
+#### Chess Notation
+
+Anamn renders chess positions and games directly in your notes.
+
+**FEN positions** — Use a `fen` code block to display a static board position:
+
+````markdown
+```fen
+rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1
+```
+````
+
+**PGN games** — Use a `pgn` code block for interactive game viewers:
+
+````markdown
+```pgn
+1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O
+```
+````
+
+PGN viewer controls:
+- **Arrow keys** — Navigate moves (Left/Right) or jump to start/end (Home/End)
+- **Click moves** — Jump to any position in the move list
+- **Engine toggle** — Click the gear icon to enable Stockfish analysis
+
+**Stockfish Analysis** — When enabled, the viewer shows:
+- **Eval bar** — Visual advantage indicator (white on bottom, black on top)
+- **Score** — Numeric evaluation (e.g., +0.45 means white is ahead by ~half a pawn)
+- **Best move** — Engine's recommended move in standard notation
+- **Line** — Principal variation (the best sequence of moves)
+
+Mate scores display as `M+3` (white mates in 3) or `M-2` (black mates in 2).
+
 #### Tables
 
 ```markdown
