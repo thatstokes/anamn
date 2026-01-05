@@ -157,3 +157,99 @@
 .chess-piece {
   display: block;
 }
+
+/* Board with Eval Bar layout */
+.chess-board-with-eval {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Eval Bar */
+.eval-bar {
+  width: 24px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  position: relative;
+}
+
+.eval-bar-black {
+  background: #333;
+  transition: height 0.3s ease;
+}
+
+.eval-bar-white {
+  background: #fff;
+  transition: height 0.3s ease;
+}
+
+.eval-bar-score {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-90deg);
+  font-size: 10px;
+  font-weight: bold;
+  white-space: nowrap;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  padding: 2px 4px;
+  border-radius: 2px;
+  opacity: 0.9;
+}
+
+.eval-bar-score.loading {
+  opacity: 0.5;
+}
+
+/* Analysis Toggle Button Active State */
+.chess-nav-button.active {
+  background: var(--accent-primary);
+  color: white;
+  border-color: var(--accent-primary);
+}
+
+/* Analysis Panel */
+.chess-analysis {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+}
+
+.chess-analysis-score,
+.chess-analysis-best,
+.chess-analysis-pv {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
+.chess-analysis .label {
+  color: var(--text-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  min-width: 32px;
+}
+
+.chess-analysis .value {
+  font-family: monospace;
+  color: var(--text-primary);
+}
+
+.chess-analysis .depth {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.chess-analysis-pv .value {
+  font-size: 12px;
+  color: var(--text-secondary);
+}

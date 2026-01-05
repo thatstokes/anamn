@@ -28,6 +28,11 @@ const api: Api = {
     loadCustomCss: (path: string) => ipcRenderer.invoke("theme:loadCustomCss", path),
     selectCustomCss: () => ipcRenderer.invoke("theme:selectCustomCss"),
   },
+  chess: {
+    analyze: (fen: string, depth?: number) =>
+      ipcRenderer.invoke("chess:analyze", fen, depth),
+    stopAnalysis: () => ipcRenderer.invoke("chess:stopAnalysis"),
+  },
   watcher: {
     onFileAdded: (callback: (event: FileChangeEvent) => void) => {
       const handler = (_: IpcRendererEvent, event: FileChangeEvent) => callback(event);

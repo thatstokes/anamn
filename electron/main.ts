@@ -4,6 +4,7 @@ import { registerWorkspaceHandlers, initWorkspace } from "./ipc/workspace.js";
 import { registerNotesHandlers } from "./ipc/notes.js";
 import { registerConfigHandlers } from "./ipc/config.js";
 import { registerThemeHandlers } from "./ipc/theme.js";
+import { registerChessHandlers } from "./ipc/chess.js";
 
 const isDev = !app.isPackaged;
 
@@ -11,6 +12,7 @@ registerWorkspaceHandlers();
 registerNotesHandlers();
 registerConfigHandlers();
 registerThemeHandlers();
+registerChessHandlers();
 
 function createWindow() {
   const win = new BrowserWindow({

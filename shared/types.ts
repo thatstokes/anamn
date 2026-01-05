@@ -89,12 +89,27 @@ export interface WatcherApi {
   onFileDeleted: (callback: (event: FileChangeEvent) => void) => () => void;
 }
 
+// Chess engine analysis types
+export interface EngineAnalysis {
+  score: number;        // Centipawns (50 = +0.5 pawns)
+  mate: number | null;  // Mate in N moves (null if not mate)
+  bestMove: string;     // UCI format (e.g., "e2e4")
+  pv: string[];         // Principal variation
+  depth: number;        // Search depth reached
+}
+
+export interface ChessApi {
+  analyze: (fen: string, depth?: number) => Promise<EngineAnalysis>;
+  stopAnalysis: () => Promise<void>;
+}
+
 export interface Api {
   workspace: WorkspaceApi;
   notes: NotesApi;
   config: ConfigApi;
   watcher: WatcherApi;
   theme: ThemeApi;
+  chess: ChessApi;
 }
 
 declare global {

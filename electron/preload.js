@@ -27,6 +27,10 @@ var api = {
     loadCustomCss: (path) => import_electron.ipcRenderer.invoke("theme:loadCustomCss", path),
     selectCustomCss: () => import_electron.ipcRenderer.invoke("theme:selectCustomCss")
   },
+  chess: {
+    analyze: (fen, depth) => import_electron.ipcRenderer.invoke("chess:analyze", fen, depth),
+    stopAnalysis: () => import_electron.ipcRenderer.invoke("chess:stopAnalysis")
+  },
   watcher: {
     onFileAdded: (callback) => {
       const handler = (_, event) => callback(event);
