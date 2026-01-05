@@ -42,6 +42,13 @@
   /* Transitions */
   --transition-fast: 0.15s ease;
 
+  /* Chess Board */
+  --chess-light: #f0d9b5;
+  --chess-dark: #b58863;
+  --chess-highlight: rgba(255, 255, 0, 0.4);
+  --chess-label-light: #b58863;
+  --chess-label-dark: #f0d9b5;
+
   /* Syntax Highlighting */
   --hl-keyword: #c586c0;
   --hl-string: #ce9178;

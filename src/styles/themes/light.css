@@ -25,6 +25,13 @@
   --shadow-modal: 0 4px 20px rgba(0, 0, 0, 0.15);
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
 
+  /* Chess Board - Light (same classic colors work for both themes) */
+  --chess-light: #f0d9b5;
+  --chess-dark: #b58863;
+  --chess-highlight: rgba(255, 255, 0, 0.5);
+  --chess-label-light: #b58863;
+  --chess-label-dark: #f0d9b5;
+
   /* Syntax Highlighting - Light */
   --hl-keyword: #af00db;
   --hl-string: #a31515;

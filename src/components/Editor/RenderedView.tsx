@@ -3,6 +3,7 @@ import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import type { Note } from "../../../shared/types.js";
+import { ChessPosition, ChessViewer } from "../Chess";
 
 interface RenderedViewProps {
   content: string;
@@ -157,9 +158,36 @@ export function RenderedView({
           ),
           td: ({ children }) => <td>{processWikiLinks(children)}</td>,
           th: ({ children }) => <th>{processWikiLinks(children)}</th>,
-          pre: ({ children, ...props }) => (
-            <CodeBlock {...props}>{children}</CodeBlock>
-          ),
+          pre: ({ children, ...props }) => {
+            // Check if this pre contains a chess code block
+            // If so, the code component will handle rendering
+            if (children && typeof children === 'object' && 'props' in children) {
+              const codeChild = children as { props?: { className?: string } };
+              if (codeChild.props?.className) {
+                const match = /language-(fen|pgn)/.exec(codeChild.props.className);
+                if (match) {
+                  // Let the code component render the chess component
+                  return <>{children}</>;
+                }
+              }
+            }
+            return <CodeBlock {...props}>{children}</CodeBlock>;
+          },
+          code: ({ children, className, ...props }) => {
+            // Check for chess code blocks
+            const match = /language-(fen|pgn)/.exec(className || '');
+            if (match) {
+              const content = String(children).replace(/\n$/, '');
+              if (match[1] === 'fen') {
+                return <ChessPosition fen={content} />;
+              }
+              if (match[1] === 'pgn') {
+                return <ChessViewer pgn={content} />;
+              }
+            }
+            // Regular code (inline or block)
+            return <code className={className} {...props}>{children}</code>;
+          },
         }}
       >
         {content}
