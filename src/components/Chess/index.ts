@@ -5,4 +5,5 @@ export { ChessPosition } from './ChessPosition';
 export { EvalBar } from './EvalBar';
 export { Piece } from './pieces';
 export { useStockfish, formatScore, getEvalBarPercent } from './useStockfish';
+export { useOpening } from './useOpening';
 export * from './types';

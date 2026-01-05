@@ -15,11 +15,20 @@ export interface LastMove {
   to: Square;
 }
 
+export type ArrowColor = 'green' | 'blue' | 'red' | 'yellow';
+
+export interface Arrow {
+  from: Square;
+  to: Square;
+  color?: ArrowColor;
+}
+
 export interface ChessBoardProps {
   position: string; // FEN position string
   size?: number; // Board size in pixels (default: 400)
   flipped?: boolean; // View from black's perspective
   lastMove?: LastMove | undefined; // Highlight last move squares
+  arrows?: Arrow[]; // Arrows to draw on board (e.g., for best move)
 }
 
 export interface ChessPositionProps {

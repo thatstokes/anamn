@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Chess } from 'chess.js';
-import { ChessViewerProps, ParsedMove, STARTING_FEN, LastMove, PIECE_SYMBOLS } from './types';
+import { ChessViewerProps, ParsedMove, STARTING_FEN, LastMove, PIECE_SYMBOLS, Arrow } from './types';
 import { ChessBoard } from './ChessBoard';
 import { ChessMoveList } from './ChessMoveList';
 import { EvalBar } from './EvalBar';
 import { useStockfish, formatScore } from './useStockfish';
+import { useOpening } from './useOpening';
 
 // Convert UCI move to SAN notation using chess.js
 function uciToSan(fen: string, uciMove: string): string {
@@ -56,6 +57,15 @@ function uciLinesToSan(fen: string, uciMoves: string[]): string[] {
     // Return what we have so far
   }
   return result;
+}
+
+// Parse UCI move to get from/to squares
+function parseUciMove(uciMove: string): { from: string; to: string } | null {
+  if (uciMove.length < 4) return null;
+  return {
+    from: uciMove.slice(0, 2),
+    to: uciMove.slice(2, 4),
+  };
 }
 
 export function ChessViewer({ pgn }: ChessViewerProps) {
@@ -174,6 +184,18 @@ export function ChessViewer({ pgn }: ChessViewerProps) {
     debounceMs: 300,
   });
 
+  // Build arrows for best move
+  const arrows: Arrow[] = [];
+  if (analysisEnabled && analysis?.bestMove) {
+    const move = parseUciMove(analysis.bestMove);
+    if (move) {
+      arrows.push({ from: move.from, to: move.to, color: 'green' });
+    }
+  }
+
+  // Opening detection
+  const opening = useOpening(currentPosition);
+
   return (
     <div
       className="chess-viewer"
@@ -189,6 +211,7 @@ export function ChessViewer({ pgn }: ChessViewerProps) {
           position={currentPosition}
           size={400}
           lastMove={currentLastMove}
+          arrows={arrows}
         />
       </div>
 
@@ -256,6 +279,13 @@ export function ChessViewer({ pgn }: ChessViewerProps) {
               </span>
             </div>
           )}
+        </div>
+      )}
+
+      {opening && (
+        <div className="chess-opening">
+          <span className="chess-opening-code">{opening.eco}</span>
+          <span className="chess-opening-name">{opening.name}</span>
         </div>
       )}
 
