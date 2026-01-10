@@ -9,6 +9,50 @@ Anamn is designed for builders who think in systems and want their knowledge to 
 
 ---
 
+## Installation
+
+### macOS
+
+**Build from source:**
+
+```bash
+git clone https://github.com/yourusername/anamn.git
+cd anamn
+npm install
+npm run dist:mac
+```
+
+This creates `release/Anamn-x.x.x.dmg`. Double-click the DMG to open it, then drag Anamn to your Applications folder.
+
+The build produces a universal binary that runs natively on both Intel and Apple Silicon Macs.
+
+### Linux
+
+**Build from source:**
+
+```bash
+git clone https://github.com/yourusername/anamn.git
+cd anamn
+npm install
+npm run dist:linux
+```
+
+This creates `release/Anamn-x.x.x.AppImage`. Make it executable and run:
+
+```bash
+chmod +x release/Anamn-*.AppImage
+./release/Anamn-*.AppImage
+```
+
+Alternatively, extract the AppImage or use the unpacked version in `release/linux-unpacked/`.
+
+### Requirements
+
+- **Node.js** 18 or later
+- **npm** 9 or later
+
+---
+
 ## Philosophy
 
 Anamn is built on a small set of non-negotiable principles:

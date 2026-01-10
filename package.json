@@ -1,20 +1,26 @@
 {
   "name": "anamn",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "private": true,
   "description": "Anamn is a local-first, single-user second brain built on Markdown files.",
-  "main": "electron/main.ts",
-  "author": "",
+  "main": "electron-dist/main.js",
+  "author": "Anamn",
   "license": "UNLICENSED",
   "scripts": {
     "dev": "npm run build:preload && concurrently \"vite\" \"NODE_OPTIONS='--import tsx' electron .\"",
     "build": "vite build",
     "build:preload": "esbuild electron/preload.ts --bundle --platform=node --outfile=electron/preload.js --external:electron",
+    "build:main": "esbuild electron/main.ts --bundle --platform=node --outdir=electron-dist --external:electron --format=cjs",
+    "build:electron": "npm run build:preload && npm run build:main",
+    "build:all": "npm run build && npm run build:electron",
     "preview": "vite preview",
-    "electron": "electron .",
+    "electron": "NODE_OPTIONS='--import tsx' electron .",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "dist": "npm run build:all && electron-builder",
+    "dist:mac": "npm run build:all && electron-builder --mac",
+    "dist:linux": "npm run build:all && electron-builder --linux"
   },
   "dependencies": {
     "chess-eco-codes": "^0.0.0",
@@ -39,11 +45,52 @@
     "@vitejs/plugin-react": "^4.2.0",
     "concurrently": "^8.2.0",
     "electron": "^30.0.0",
+    "electron-builder": "^26.4.0",
     "esbuild": "^0.27.2",
     "jsdom": "^27.4.0",
     "tsx": "^4.21.0",
     "typescript": "^5.4.0",
     "vite": "^5.2.0",
     "vitest": "^4.0.16"
+  },
+  "build": {
+    "appId": "com.anamn.app",
+    "productName": "Anamn",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron-dist/**/*",
+      "electron/preload.js",
+      "node_modules/stockfish/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "node_modules/stockfish",
+        "to": "stockfish",
+        "filter": ["**/*"]
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "icon": "build/icon.png",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        }
+      ]
+    },
+    "linux": {
+      "category": "Office",
+      "icon": "build/icon.png",
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": ["x64"]
+        }
+      ]
+    }
   }
 }

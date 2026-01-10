@@ -8,6 +8,15 @@ import { registerChessHandlers } from "./ipc/chess.js";
 
 const isDev = !app.isPackaged;
 
+// Get the correct preload path
+function getPreloadPath(): string {
+  if (isDev) {
+    return path.join(app.getAppPath(), "electron", "preload.js");
+  } else {
+    return path.join(app.getAppPath(), "electron", "preload.js");
+  }
+}
+
 registerWorkspaceHandlers();
 registerNotesHandlers();
 registerConfigHandlers();
@@ -19,7 +28,7 @@ function createWindow() {
     width: 1200,
     height: 800,
     webPreferences: {
-      preload: path.join(__dirname, "preload.js"),
+      preload: getPreloadPath(),
       contextIsolation: true,
       nodeIntegration: false,
     },
@@ -28,7 +37,7 @@ function createWindow() {
   if (isDev) {
     win.loadURL("http://localhost:5173");
   } else {
-    win.loadFile(path.join(__dirname, "../dist/index.html"));
+    win.loadFile(path.join(app.getAppPath(), "dist", "index.html"));
   }
 }
 

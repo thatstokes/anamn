@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 import { NoteList } from "./NoteList.js";
 import type { Note } from "../../../shared/types.js";
 
@@ -59,7 +59,9 @@ describe("NoteList", () => {
     render(<NoteList {...defaultProps} />);
 
     const list = screen.getByRole("list");
-    list.focus();
+    act(() => {
+      list.focus();
+    });
 
     // After focus, index is set to 0
     // First ArrowDown moves to 1, second to 2
@@ -74,7 +76,9 @@ describe("NoteList", () => {
     render(<NoteList {...defaultProps} />);
 
     const list = screen.getByRole("list");
-    list.focus();
+    act(() => {
+      list.focus();
+    });
 
     // Start at index 0 after focus
     fireEvent.keyDown(list, { key: "ArrowUp" });

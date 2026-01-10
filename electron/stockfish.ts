@@ -4,9 +4,18 @@
 import type { EngineAnalysis } from "../shared/types.js";
 import path from "path";
 import fs from "fs";
-import { fileURLToPath } from "url";
+import { app } from "electron";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// Get the correct base directory depending on whether we're packaged
+function getStockfishDir(): string {
+  if (app.isPackaged) {
+    // In packaged app, stockfish is in resources
+    return path.join(process.resourcesPath, "stockfish", "src");
+  } else {
+    // In development, use node_modules
+    return path.join(app.getAppPath(), "node_modules", "stockfish", "src");
+  }
+}
 
 interface StockfishEngine {
   listener: ((message: string) => void) | null;
@@ -34,7 +43,7 @@ class StockfishWrapper {
   private async _doInitialize(): Promise<void> {
     try {
       // Find the engine files
-      const engineDir = path.join(__dirname, "..", "node_modules", "stockfish", "src");
+      const engineDir = getStockfishDir();
       const symlinkPath = path.join(engineDir, "stockfish.js");
 
       let pathToEngine: string;
