@@ -8,6 +8,13 @@ export async function initConfig(): Promise<Config> {
   return cachedConfig;
 }
 
+// Update the cached config (used by other modules when they save config directly)
+export function updateConfigCache(updates: Partial<Config>): void {
+  if (cachedConfig) {
+    cachedConfig = { ...cachedConfig, ...updates };
+  }
+}
+
 export function registerConfigHandlers() {
   ipcMain.handle("config:get", async (): Promise<Config> => {
     if (!cachedConfig) {

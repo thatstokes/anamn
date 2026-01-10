@@ -128,10 +128,13 @@ export function ChessViewer({ pgn }: ChessViewerProps) {
 
   // Keyboard navigation
   useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
     const handleKeyDown = (e: KeyboardEvent) => {
       // Only handle if we're focused on this viewer
-      if (!containerRef.current?.contains(document.activeElement) &&
-          document.activeElement !== containerRef.current) {
+      if (!container.contains(document.activeElement) &&
+          document.activeElement !== container) {
         return;
       }
 

@@ -17,26 +17,31 @@ const ecoDatabase = ecoCodes as EcoDatabase;
  */
 export function useOpening(fen: string): Opening | null {
   return useMemo(() => {
-    if (!fen) return null;
+    try {
+      if (!fen) return null;
 
-    // Try exact lookup first
-    const exact = ecoDatabase[fen];
-    if (exact) return exact;
+      // Try exact lookup first
+      const exact = ecoDatabase[fen];
+      if (exact) return exact;
 
-    // The ECO database uses specific halfmove/fullmove clocks.
-    // Try with halfmove clock = 0 and various fullmove numbers.
-    const parts = fen.split(' ');
-    if (parts.length !== 6) return null;
+      // The ECO database uses specific halfmove/fullmove clocks.
+      // Try with halfmove clock = 0 and various fullmove numbers.
+      const parts = fen.split(' ');
+      if (parts.length !== 6) return null;
 
-    const [position, side, castling, enPassant] = parts;
+      const [position, side, castling, enPassant] = parts;
 
-    // Try common fullmove numbers (1-30 covers most openings)
-    for (let fullmove = 1; fullmove <= 30; fullmove++) {
-      const normalizedFen = `${position} ${side} ${castling} ${enPassant} 0 ${fullmove}`;
-      const result = ecoDatabase[normalizedFen];
-      if (result) return result;
+      // Try common fullmove numbers (1-30 covers most openings)
+      for (let fullmove = 1; fullmove <= 30; fullmove++) {
+        const normalizedFen = `${position} ${side} ${castling} ${enPassant} 0 ${fullmove}`;
+        const result = ecoDatabase[normalizedFen];
+        if (result) return result;
+      }
+
+      return null;
+    } catch (e) {
+      console.error('Error in useOpening:', e);
+      return null;
     }
-
-    return null;
   }, [fen]);
 }
