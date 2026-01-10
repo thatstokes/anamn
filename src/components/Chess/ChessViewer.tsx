@@ -3,9 +3,10 @@ import { Chess } from 'chess.js';
 import { ChessViewerProps, ParsedMove, STARTING_FEN, LastMove, PIECE_SYMBOLS, Arrow } from './types';
 import { ChessBoard } from './ChessBoard';
 import { ChessMoveList } from './ChessMoveList';
-import { EvalBar } from './EvalBar';
-import { useStockfish, formatScore } from './useStockfish';
-import { useOpening } from './useOpening';
+// Temporarily disabled to debug React Error #300
+// import { EvalBar } from './EvalBar';
+// import { useStockfish, formatScore } from './useStockfish';
+// import { useOpening } from './useOpening';
 
 // Convert UCI move to SAN notation using chess.js
 function uciToSan(fen: string, uciMove: string): string {
@@ -74,7 +75,8 @@ export function ChessViewer({ pgn }: ChessViewerProps) {
   const [positions, setPositions] = useState<string[]>([STARTING_FEN]);
   const [lastMoves, setLastMoves] = useState<(LastMove | undefined)[]>([undefined]);
   const [error, setError] = useState<string | null>(null);
-  const [analysisEnabled, setAnalysisEnabled] = useState(false);
+  // Temporarily disabled to debug React Error #300
+  // const [analysisEnabled, setAnalysisEnabled] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Parse PGN on mount
@@ -180,24 +182,15 @@ export function ChessViewer({ pgn }: ChessViewerProps) {
   const currentPosition = positions[positionIndex] || STARTING_FEN;
   const currentLastMove = lastMoves[positionIndex];
 
-  // Stockfish analysis
-  const { analysis, loading } = useStockfish(currentPosition, {
-    enabled: analysisEnabled,
-    depth: 20,
-    debounceMs: 300,
-  });
+  // Temporarily disabled to debug React Error #300
+  // const { analysis, loading } = useStockfish(currentPosition, {
+  //   enabled: analysisEnabled,
+  //   depth: 20,
+  //   debounceMs: 300,
+  // });
+  // const opening = useOpening(currentPosition);
 
-  // Build arrows for best move
   const arrows: Arrow[] = [];
-  if (analysisEnabled && analysis?.bestMove) {
-    const move = parseUciMove(analysis.bestMove);
-    if (move) {
-      arrows.push({ from: move.from, to: move.to, color: 'green' });
-    }
-  }
-
-  // Opening detection
-  const opening = useOpening(currentPosition);
 
   return (
     <div
@@ -207,9 +200,6 @@ export function ChessViewer({ pgn }: ChessViewerProps) {
       style={{ outline: 'none' }}
     >
       <div className="chess-board-with-eval">
-        {analysisEnabled && (
-          <EvalBar analysis={analysis} loading={loading} height={400} />
-        )}
         <ChessBoard
           position={currentPosition}
           size={400}
@@ -251,46 +241,7 @@ export function ChessViewer({ pgn }: ChessViewerProps) {
         >
           ⏭
         </button>
-        <button
-          className={`chess-nav-button ${analysisEnabled ? 'active' : ''}`}
-          onClick={() => setAnalysisEnabled(!analysisEnabled)}
-          title="Toggle engine analysis"
-        >
-          ⚙
-        </button>
       </div>
-
-      {analysisEnabled && analysis && (
-        <div className="chess-analysis">
-          <div className="chess-analysis-score">
-            <span className="label">Eval:</span>
-            <span className="value">{formatScore(analysis)}</span>
-            <span className="depth">Depth {analysis.depth}</span>
-          </div>
-          {analysis.bestMove && (
-            <div className="chess-analysis-best">
-              <span className="label">Best:</span>
-              <span className="value">{uciToSan(currentPosition, analysis.bestMove)}</span>
-            </div>
-          )}
-          {analysis.pv.length > 1 && (
-            <div className="chess-analysis-pv">
-              <span className="label">Line:</span>
-              <span className="value">
-                {uciLinesToSan(currentPosition, analysis.pv.slice(0, 5)).join(' ')}
-                {analysis.pv.length > 5 ? '...' : ''}
-              </span>
-            </div>
-          )}
-        </div>
-      )}
-
-      {opening && (
-        <div className="chess-opening">
-          <span className="chess-opening-code">{opening.eco}</span>
-          <span className="chess-opening-name">{opening.name}</span>
-        </div>
-      )}
 
       {moves.length > 0 && (
         <ChessMoveList
