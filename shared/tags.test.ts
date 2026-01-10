@@ -7,25 +7,25 @@ describe("parseTags", () => {
   });
 
   it("should parse multiple tags", () => {
-    const result = parseTags("#foo and #bar");
+    const result = parseTags("text #foo and #bar");
     expect(result).toHaveLength(2);
     expect(result[0]?.text).toBe("foo");
     expect(result[1]?.text).toBe("bar");
   });
 
   it("should parse tags with hyphens", () => {
-    const result = parseTags("#my-tag");
-    expect(result).toEqual([{ text: "my-tag", start: 0, end: 7 }]);
+    const result = parseTags("text #my-tag");
+    expect(result).toEqual([{ text: "my-tag", start: 5, end: 12 }]);
   });
 
   it("should parse tags with underscores", () => {
-    const result = parseTags("#my_tag");
-    expect(result).toEqual([{ text: "my_tag", start: 0, end: 7 }]);
+    const result = parseTags("text #my_tag");
+    expect(result).toEqual([{ text: "my_tag", start: 5, end: 12 }]);
   });
 
   it("should parse tags with numbers", () => {
-    const result = parseTags("#tag123");
-    expect(result).toEqual([{ text: "tag123", start: 0, end: 7 }]);
+    const result = parseTags("text #tag123");
+    expect(result).toEqual([{ text: "tag123", start: 5, end: 12 }]);
   });
 
   it("should not match markdown headers", () => {
@@ -48,10 +48,18 @@ describe("parseTags", () => {
     expect(result[1]?.text).toBe("tag2");
   });
 
-  it("should match tags at start of line", () => {
+  it("should NOT match tags at start of line (could be markdown headers)", () => {
     const result = parseTags("#start\nmiddle #middle\n#end");
-    expect(result).toHaveLength(3);
-    expect(result.map((t) => t.text)).toEqual(["start", "middle", "end"]);
+    // Only #middle should match - it's preceded by whitespace
+    // #start and #end are at line start, could be headers
+    expect(result).toHaveLength(1);
+    expect(result[0]?.text).toBe("middle");
+  });
+
+  it("should match tags preceded by whitespace", () => {
+    const result = parseTags("text #tag1 and #tag2");
+    expect(result).toHaveLength(2);
+    expect(result.map((t) => t.text)).toEqual(["tag1", "tag2"]);
   });
 
   it("should not match URL fragments", () => {
@@ -72,12 +80,12 @@ describe("parseTags", () => {
 
 describe("getUniqueTags", () => {
   it("should return unique tags", () => {
-    const result = getUniqueTags("#foo #bar #foo");
+    const result = getUniqueTags("text #foo #bar #foo");
     expect(result).toEqual(["bar", "foo"]);
   });
 
   it("should sort tags alphabetically", () => {
-    const result = getUniqueTags("#zebra #apple #middle");
+    const result = getUniqueTags("text #zebra #apple #middle");
     expect(result).toEqual(["apple", "middle", "zebra"]);
   });
 
@@ -87,12 +95,12 @@ describe("getUniqueTags", () => {
   });
 
   it("should handle multiple occurrences", () => {
-    const result = getUniqueTags("#a #b #a #c #b #a");
+    const result = getUniqueTags("text #a #b #a #c #b #a");
     expect(result).toEqual(["a", "b", "c"]);
   });
 
   it("should preserve case", () => {
-    const result = getUniqueTags("#Tag #TAG #tag");
+    const result = getUniqueTags("text #Tag #TAG #tag");
     // All three are different due to case sensitivity
     expect(result).toHaveLength(3);
   });

@@ -12,11 +12,14 @@ export interface ParsedTag {
  * Regex pattern for matching tags.
  * Matches # followed by word characters and hyphens.
  * Does not match:
- * - Markdown headers (# at start of line followed by space)
+ * - Markdown headers (# at start of line - could be header syntax)
  * - URL fragments (#anchor)
  * - Hex colors (#fff, #ffffff)
+ *
+ * Tags must be preceded by space/tab or punctuation (not newline or start of line).
+ * This avoids ambiguity with markdown headers like #Header or # Header.
  */
-const TAG_PATTERN = /(?:^|[^\w#/])#([\w-]+)/g;
+const TAG_PATTERN = /(?<=[ \t]|[^\w#/\s])#([\w-]+)/g;
 
 /**
  * Parse all tags from content, returning their positions.
@@ -33,9 +36,8 @@ export function parseTags(content: string): ParsedTag[] {
     const tagText = match[1];
     if (!tagText) continue;
 
-    // Find the actual position of the # in the match
-    const hashIndex = match[0].lastIndexOf("#");
-    const start = match.index + hashIndex;
+    // With lookbehind, match[0] is just "#tagname" and match.index points to the #
+    const start = match.index;
     const end = start + 1 + tagText.length;
 
     tags.push({

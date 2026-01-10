@@ -2,6 +2,7 @@ export { ChessBoard } from './ChessBoard';
 export { ChessMoveList } from './ChessMoveList';
 export { ChessViewer } from './ChessViewer';
 export { ChessPosition } from './ChessPosition';
+export { ChessErrorBoundary } from './ChessErrorBoundary';
 export { EvalBar } from './EvalBar';
 export { Piece } from './pieces';
 export { useStockfish, formatScore, getEvalBarPercent } from './useStockfish';

@@ -3,7 +3,7 @@ import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import type { Note } from "../../../shared/types.js";
-import { ChessPosition, ChessViewer } from "../Chess";
+import { ChessPosition, ChessViewer, ChessErrorBoundary } from "../Chess";
 
 interface RenderedViewProps {
   content: string;
@@ -59,16 +59,18 @@ export function RenderedView({
   onTagClick,
 }: RenderedViewProps) {
   // Process tags in text to make them clickable
+  // Tags must be preceded by space/tab or punctuation (not newline or start of line)
   const processTags = (text: string, keyPrefix: string): React.ReactNode[] => {
     const parts: React.ReactNode[] = [];
-    const tagRegex = /(?:^|[^\w#/])#([\w-]+)/g;
+    // Use lookbehind to require space/tab or punctuation before #
+    const tagRegex = /(?<=[ \t]|[^\w#/\s])#([\w-]+)/g;
     let lastIndex = 0;
     let match: RegExpExecArray | null;
 
     while ((match = tagRegex.exec(text)) !== null) {
       const tagText = match[1];
-      const hashIndex = match[0].lastIndexOf("#");
-      const beforeHash = text.slice(lastIndex, match.index + hashIndex);
+      // With lookbehind, match.index points directly to the #
+      const beforeHash = text.slice(lastIndex, match.index);
 
       if (beforeHash) {
         parts.push(beforeHash);
@@ -179,10 +181,18 @@ export function RenderedView({
             if (match) {
               const content = String(children).replace(/\n$/, '');
               if (match[1] === 'fen') {
-                return <ChessPosition fen={content} />;
+                return (
+                  <ChessErrorBoundary>
+                    <ChessPosition fen={content} />
+                  </ChessErrorBoundary>
+                );
               }
               if (match[1] === 'pgn') {
-                return <ChessViewer pgn={content} />;
+                return (
+                  <ChessErrorBoundary>
+                    <ChessViewer pgn={content} />
+                  </ChessErrorBoundary>
+                );
               }
             }
             // Regular code (inline or block)

@@ -99,10 +99,12 @@ export function useStockfish(
       if (debounceTimer.current) {
         clearTimeout(debounceTimer.current);
       }
-      // Stop any ongoing analysis when position changes or unmounting
-      window.api.chess.stopAnalysis().catch(() => {
-        // Ignore errors on stop
-      });
+      // Only stop analysis if it was enabled (engine was actually started)
+      if (enabled) {
+        window.api.chess.stopAnalysis().catch(() => {
+          // Ignore errors on stop
+        });
+      }
     };
   }, [fen, enabled, debounceMs, analyze]);
 

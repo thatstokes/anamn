@@ -80,14 +80,19 @@ const DEFAULT_CONFIG: Config = {
 
 const CONFIG_FILENAME = "anamn.config.json";
 
+// User config directory: ~/.config/anamn/ (XDG standard, works on Mac and Linux)
+function getUserConfigDir(): string {
+  return path.join(os.homedir(), ".config", "anamn");
+}
+
 function getConfigPaths(): string[] {
   // 1. App root directory (for development / portable mode)
   const appRoot = app.isPackaged
     ? path.dirname(app.getPath("exe"))
     : process.cwd();
 
-  // 2. User config directory (~/.config/anamn/)
-  const userConfigDir = path.join(os.homedir(), ".config", "anamn");
+  // 2. User config directory: ~/.config/anamn/
+  const userConfigDir = getUserConfigDir();
 
   return [
     path.join(appRoot, CONFIG_FILENAME),
@@ -139,8 +144,8 @@ export async function loadConfig(): Promise<Config> {
 }
 
 export async function saveConfig(config: Config): Promise<void> {
-  // Always save to user config directory (~/.config/anamn/)
-  const userConfigDir = path.join(os.homedir(), ".config", "anamn");
+  // Always save to ~/.config/anamn/
+  const userConfigDir = getUserConfigDir();
   const userConfigPath = path.join(userConfigDir, CONFIG_FILENAME);
 
   await fs.mkdir(userConfigDir, { recursive: true });
