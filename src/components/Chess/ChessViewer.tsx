@@ -3,33 +3,9 @@ import { Chess } from 'chess.js';
 import { ChessViewerProps, ParsedMove, STARTING_FEN, LastMove, PIECE_SYMBOLS, Arrow } from './types';
 import { ChessBoard } from './ChessBoard';
 import { ChessMoveList } from './ChessMoveList';
-// Temporarily disabled to debug React Error #300
-// import { EvalBar } from './EvalBar';
-// import { useStockfish, formatScore } from './useStockfish';
-// import { useOpening } from './useOpening';
-
-// Convert UCI move to SAN notation using chess.js
-function uciToSan(fen: string, uciMove: string): string {
-  try {
-    const chess = new Chess(fen);
-    const promotion = uciMove.length > 4 ? uciMove.charAt(4) : undefined;
-    const move = chess.move({
-      from: uciMove.slice(0, 2),
-      to: uciMove.slice(2, 4),
-      ...(promotion && { promotion }),
-    });
-    if (move) {
-      // Replace piece letters with symbols for consistency with move list
-      return move.san.replace(/^([KQRBN])/, (_, piece) => {
-        const pieceType = piece.toLowerCase() as keyof typeof PIECE_SYMBOLS;
-        return PIECE_SYMBOLS[pieceType].w;
-      });
-    }
-  } catch {
-    // If conversion fails, return original
-  }
-  return uciMove;
-}
+import { EvalBar } from './EvalBar';
+import { useStockfish, formatScore } from './useStockfish';
+import { useOpening } from './useOpening';
 
 // Convert a sequence of UCI moves to SAN, playing them sequentially
 function uciLinesToSan(fen: string, uciMoves: string[]): string[] {
@@ -75,8 +51,7 @@ export function ChessViewer({ pgn }: ChessViewerProps) {
   const [positions, setPositions] = useState<string[]>([STARTING_FEN]);
   const [lastMoves, setLastMoves] = useState<(LastMove | undefined)[]>([undefined]);
   const [error, setError] = useState<string | null>(null);
-  // Temporarily disabled to debug React Error #300
-  // const [analysisEnabled, setAnalysisEnabled] = useState(false);
+  const [analysisEnabled, setAnalysisEnabled] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Parse PGN on mount
@@ -182,15 +157,21 @@ export function ChessViewer({ pgn }: ChessViewerProps) {
   const currentPosition = positions[positionIndex] || STARTING_FEN;
   const currentLastMove = lastMoves[positionIndex];
 
-  // Temporarily disabled to debug React Error #300
-  // const { analysis, loading } = useStockfish(currentPosition, {
-  //   enabled: analysisEnabled,
-  //   depth: 20,
-  //   debounceMs: 300,
-  // });
-  // const opening = useOpening(currentPosition);
+  const { analysis, loading } = useStockfish(currentPosition, {
+    enabled: analysisEnabled,
+    depth: 20,
+    debounceMs: 300,
+  });
+  const opening = useOpening(currentPosition);
 
+  // Build arrows from best move when analysis is available
   const arrows: Arrow[] = [];
+  if (analysisEnabled && analysis?.bestMove) {
+    const parsed = parseUciMove(analysis.bestMove);
+    if (parsed) {
+      arrows.push({ from: parsed.from, to: parsed.to, color: 'green' });
+    }
+  }
 
   return (
     <div
@@ -200,6 +181,7 @@ export function ChessViewer({ pgn }: ChessViewerProps) {
       style={{ outline: 'none' }}
     >
       <div className="chess-board-with-eval">
+        {analysisEnabled && <EvalBar analysis={analysis} loading={loading} />}
         <ChessBoard
           position={currentPosition}
           size={400}
@@ -207,6 +189,28 @@ export function ChessViewer({ pgn }: ChessViewerProps) {
           arrows={arrows}
         />
       </div>
+
+      {opening && (
+        <div className="chess-opening">
+          <span className="chess-opening-eco">{opening.eco}</span>
+          <span className="chess-opening-name">{opening.name}</span>
+        </div>
+      )}
+
+      {analysisEnabled && analysis && (
+        <div className="chess-analysis">
+          <div className="chess-analysis-score">
+            {loading ? 'Analyzing...' : formatScore(analysis)}
+            {!loading && analysis.depth && <span className="chess-analysis-depth"> (d{analysis.depth})</span>}
+          </div>
+          {analysis.pv && analysis.pv.length > 0 && (
+            <div className="chess-analysis-line">
+              {uciLinesToSan(currentPosition, analysis.pv.slice(0, 8)).join(' ')}
+              {analysis.pv.length > 8 && '...'}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="chess-nav">
         <button
@@ -240,6 +244,13 @@ export function ChessViewer({ pgn }: ChessViewerProps) {
           title="Last move (End)"
         >
           ⏭
+        </button>
+        <button
+          className={`chess-nav-button chess-analysis-toggle ${analysisEnabled ? 'active' : ''}`}
+          onClick={() => setAnalysisEnabled(!analysisEnabled)}
+          title={analysisEnabled ? 'Disable analysis' : 'Enable Stockfish analysis'}
+        >
+          {analysisEnabled ? '🔍' : '🔎'}
         </button>
       </div>
 
