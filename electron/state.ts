@@ -1,10 +1,13 @@
 import fs from "fs/promises";
 import path from "path";
+import os from "os";
 import { app } from "electron";
 
 /**
  * App state that shouldn't be in user config.
- * Stored in Electron's userData directory (platform-specific app data location).
+ * Platform-specific locations:
+ * - Linux: ~/.local/state/anamn/ (XDG_STATE_HOME)
+ * - macOS: ~/Library/Application Support/Anamn/
  */
 export interface AppState {
   recentNotes: string[]; // Array of note titles, most recent first
@@ -19,9 +22,12 @@ const DEFAULT_STATE: AppState = {
 const STATE_FILENAME = "state.json";
 
 function getStatePath(): string {
-  // Use Electron's userData path for app state
-  // macOS: ~/Library/Application Support/Anamn
-  // Linux: ~/.config/Anamn (XDG_CONFIG_HOME)
+  if (process.platform === "linux") {
+    // XDG_STATE_HOME or fallback to ~/.local/state/
+    const xdgStateHome = process.env.XDG_STATE_HOME || path.join(os.homedir(), ".local", "state");
+    return path.join(xdgStateHome, "anamn", STATE_FILENAME);
+  }
+  // macOS: ~/Library/Application Support/Anamn/
   return path.join(app.getPath("userData"), STATE_FILENAME);
 }
 
