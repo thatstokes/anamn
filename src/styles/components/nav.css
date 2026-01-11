@@ -54,6 +54,8 @@
 }
 
 .top-header-title {
+  display: flex;
+  align-items: center;
   font-weight: bold;
   font-size: 14px;
   color: var(--text-secondary);

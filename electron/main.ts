@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, Menu } from "electron";
 import path from "path";
 import { registerWorkspaceHandlers, initWorkspace } from "./ipc/workspace.js";
 import { registerNotesHandlers } from "./ipc/notes.js";
@@ -44,6 +44,9 @@ function createWindow() {
 }
 
 app.whenReady().then(async () => {
+  // Remove the default menu bar
+  Menu.setApplicationMenu(null);
+
   await initWorkspace();
   createWindow();
 });

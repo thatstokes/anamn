@@ -23,6 +23,10 @@ var api = {
     get: () => import_electron.ipcRenderer.invoke("config:get"),
     set: (updates) => import_electron.ipcRenderer.invoke("config:set", updates)
   },
+  state: {
+    get: () => import_electron.ipcRenderer.invoke("state:get"),
+    set: (updates) => import_electron.ipcRenderer.invoke("state:set", updates)
+  },
   theme: {
     loadCustomCss: (path) => import_electron.ipcRenderer.invoke("theme:loadCustomCss", path),
     selectCustomCss: () => import_electron.ipcRenderer.invoke("theme:selectCustomCss")
