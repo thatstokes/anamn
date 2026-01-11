@@ -25,6 +25,7 @@ import { SettingsModal } from "./components/Settings/SettingsModal.js";
 import { VerticalNavBar } from "./components/VerticalNavBar.js";
 import { GraphView } from "./components/RightPanel/GraphView.js";
 import { ThemeProvider } from "./components/ThemeProvider.js";
+import { Logo } from "./components/Logo.js";
 
 export function App() {
   return (
@@ -441,7 +442,7 @@ function AppContent() {
   if (!workspace) {
     return (
       <div className="welcome">
-        <h1>Anamn</h1>
+        <Logo height={48} />
         <p>Select a folder to store your notes</p>
         <button onClick={handleSelectWorkspace}>Select Folder</button>
       </div>

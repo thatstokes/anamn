@@ -1,5 +1,6 @@
 import type { Note } from "../../shared/types.js";
 import { useUI } from "../state/contexts/UIContext.js";
+import { Logo } from "./Logo.js";
 
 interface TopHeaderProps {
   selectedNote: Note | null;
@@ -18,7 +19,9 @@ export function TopHeader({ selectedNote, onSelectNote }: TopHeaderProps) {
   } = useUI();
   return (
     <div className="top-header">
-      <div className="top-header-title">Anamn</div>
+      <div className="top-header-title">
+        <Logo height={24} />
+      </div>
       <div className="top-header-search">
         <input
           ref={searchInputRef}
