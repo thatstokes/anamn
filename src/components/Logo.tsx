@@ -16,6 +16,7 @@ export function Logo({ height = 28, className }: LogoProps) {
       viewBox="0 0 31 9"
       shapeRendering="crispEdges"
       className={className}
+      style={{ display: 'block' }}
     >
       {/* background */}
       <rect x="0" y="0" width="31" height="9" fill="#07140a" />
