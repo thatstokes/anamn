@@ -1,11 +1,12 @@
 # Anamn
 
-**Anamn** is a local-first, desktop-native second brain.
+**Anamn** is a local-first chess study tool and second brain.
 
-It treats Markdown files as memory, links as recall, and structure as thought.
-There is no cloud, no proprietary format, and no abstraction between you and your notes.
+It combines interactive chess analysis with Markdown note-taking, letting you annotate games, study openings, and build a connected knowledge base of your chess learning. Embed FEN positions and PGN games directly in your notes with integrated Stockfish analysis and opening detection.
 
-Anamn is designed for builders who think in systems and want their knowledge to last.
+There is no cloud, no proprietary format, and no abstraction between you and your data. Your games, annotations, and notes live as plain Markdown files on your filesystem.
+
+Anamn is designed for chess players who want their study material to last.
 
 ---
 
@@ -72,10 +73,10 @@ It respects the filesystem and makes its behavior explicit.
 
 ## What Anamn Is
 
+- A **chess study tool** with interactive boards, Stockfish analysis, and opening detection
 - A **local-first Electron desktop app** (Linux and macOS)
-- A **single-user knowledge system**
 - A **Markdown-native editor** with Vim keybindings
-- A **link-driven knowledge graph** (derived, not stored)
+- A **link-driven knowledge graph** for connecting games, openings, and concepts
 - A foundation for **local, inspectable AI augmentation**
 
 ---
@@ -103,9 +104,57 @@ Anamn optimizes for **clarity, durability, and builder joy**, not mass adoption.
 
 Example:
 
-- Agentic Reasoning.md
-- Distributed Systems.md
-- Personal Knowledge Management.md
+- Sicilian Najdorf.md
+- London System.md
+- Carlsen vs Nepomniachtchi 2021.md
+
+---
+
+### Chess Study
+
+Anamn renders chess positions and games directly in your notes with integrated engine analysis.
+
+#### FEN Positions
+
+Use a `fen` code block to display a board position:
+
+````markdown
+```fen
+rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1
+```
+````
+
+FEN positions support engine analysis (click the gear icon) and opening detection.
+
+#### PGN Games
+
+Use a `pgn` code block for interactive game viewers:
+
+````markdown
+```pgn
+1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O
+```
+````
+
+**Navigation:**
+- **Arrow keys** — Navigate moves (Left/Right) or jump to start/end (Home/End)
+- **Click moves** — Jump to any position in the move list
+- **Engine toggle** — Click the gear icon to enable Stockfish analysis
+
+#### Stockfish Analysis
+
+When enabled, the viewer shows:
+- **Eval bar** — Visual advantage indicator (white on bottom, black on top)
+- **Score** — Numeric evaluation (e.g., +0.45 means white is ahead by ~half a pawn)
+- **Best move** — Engine's recommended move in standard notation
+- **Best move arrow** — Green arrow overlay on the board showing the recommended move
+- **Line** — Principal variation (the best sequence of moves)
+
+Mate scores display as `M+3` (white mates in 3) or `M-2` (black mates in 2).
+
+#### Opening Detection
+
+Anamn automatically identifies chess openings using the ECO (Encyclopaedia of Chess Openings) database. When a position matches a known opening, the ECO code and opening name are displayed (e.g., "B90 · Sicilian Defense: Najdorf Variation").
 
 ---
 
@@ -187,44 +236,6 @@ GROUP BY users.id;
 ```
 ````
 
-#### Chess Notation
-
-Anamn renders chess positions and games directly in your notes.
-
-**FEN positions** — Use a `fen` code block to display a board position:
-
-````markdown
-```fen
-rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1
-```
-````
-
-FEN positions support engine analysis (click the gear icon) and opening detection.
-
-**PGN games** — Use a `pgn` code block for interactive game viewers:
-
-````markdown
-```pgn
-1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O
-```
-````
-
-PGN viewer controls:
-- **Arrow keys** — Navigate moves (Left/Right) or jump to start/end (Home/End)
-- **Click moves** — Jump to any position in the move list
-- **Engine toggle** — Click the gear icon to enable Stockfish analysis
-
-**Stockfish Analysis** — When enabled, the viewer shows:
-- **Eval bar** — Visual advantage indicator (white on bottom, black on top)
-- **Score** — Numeric evaluation (e.g., +0.45 means white is ahead by ~half a pawn)
-- **Best move** — Engine's recommended move in standard notation
-- **Best move arrow** — Green arrow overlay on the board showing the recommended move
-- **Line** — Principal variation (the best sequence of moves)
-
-Mate scores display as `M+3` (white mates in 3) or `M-2` (black mates in 2).
-
-**Opening Detection** — Anamn automatically identifies chess openings using the ECO (Encyclopaedia of Chess Openings) database. When a position matches a known opening, the ECO code and opening name are displayed (e.g., "B90 · Sicilian Defense: Najdorf Variation").
-
 #### Tables
 
 ```markdown
@@ -254,9 +265,9 @@ Mate scores display as `M+3` (white mates in 3) or `M-2` (black mates in 2).
 Anamn uses explicit wiki-style links:
 
 ```markdown
-Check out [[Agentic Reasoning]] for more details.
+This line in the [[Sicilian Najdorf]] leads to sharp play.
 
-You can link to [[notes that don't exist yet]] and Anamn will create them when clicked.
+See also [[Carlsen vs Nepomniachtchi 2021]] for a modern example.
 ```
 
 Links:
@@ -274,9 +285,9 @@ Missing links are styled differently so you can see which notes need to be creat
 Use hashtags to categorize and find notes:
 
 ```markdown
-This note is about #programming and #typescript.
+This opening leads to #closed-positions with #pawn-chains.
 
-Tags can include hyphens: #my-project #work-in-progress
+Tags can include hyphens: #sicilian-defense #world-championship
 ```
 
 Tags:
