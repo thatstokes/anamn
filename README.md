@@ -16,7 +16,7 @@ Anamn is designed for builders who think in systems and want their knowledge to 
 **Build from source:**
 
 ```bash
-git clone https://github.com/yourusername/anamn.git
+git clone https://github.com/thatstokes/anamn.git
 cd anamn
 npm install
 npm run dist:mac
@@ -31,7 +31,7 @@ The build produces a universal binary that runs natively on both Intel and Apple
 **Build from source:**
 
 ```bash
-git clone https://github.com/yourusername/anamn.git
+git clone https://github.com/thatstokes/anamn.git
 cd anamn
 npm install
 npm run dist:linux
