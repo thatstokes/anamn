@@ -23,10 +23,8 @@ const mockConfig = {
   },
   rightPanelSections: ["recents", "links", "tags", "graph"] as const,
   notes_dir: "/notes",
-  recentNotes: [],
   rightPanelOpen: true,
   collapsedSections: [],
-  lastOpenedNote: null,
   theme: {
     mode: "dark" as const,
   },

@@ -43,6 +43,7 @@
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^4.2.0",
+    "@vitest/coverage-v8": "^4.0.16",
     "concurrently": "^8.2.0",
     "electron": "^30.0.0",
     "electron-builder": "^26.4.0",
@@ -69,7 +70,9 @@
       {
         "from": "node_modules/stockfish",
         "to": "stockfish",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       }
     ],
     "mac": {
@@ -78,7 +81,10 @@
       "target": [
         {
           "target": "dmg",
-          "arch": ["x64", "arm64"]
+          "arch": [
+            "x64",
+            "arm64"
+          ]
         }
       ]
     },
@@ -88,7 +94,9 @@
       "target": [
         {
           "target": "AppImage",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ]
     }
