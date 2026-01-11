@@ -190,28 +190,6 @@ export function ChessViewer({ pgn }: ChessViewerProps) {
         />
       </div>
 
-      {opening && (
-        <div className="chess-opening">
-          <span className="chess-opening-eco">{opening.eco}</span>
-          <span className="chess-opening-name">{opening.name}</span>
-        </div>
-      )}
-
-      {analysisEnabled && analysis && (
-        <div className="chess-analysis">
-          <div className="chess-analysis-score">
-            {loading ? 'Analyzing...' : formatScore(analysis)}
-            {!loading && analysis.depth && <span className="chess-analysis-depth"> (d{analysis.depth})</span>}
-          </div>
-          {analysis.pv && analysis.pv.length > 0 && (
-            <div className="chess-analysis-line">
-              {uciLinesToSan(currentPosition, analysis.pv.slice(0, 8)).join(' ')}
-              {analysis.pv.length > 8 && '...'}
-            </div>
-          )}
-        </div>
-      )}
-
       <div className="chess-nav">
         <button
           className="chess-nav-button"
@@ -253,6 +231,28 @@ export function ChessViewer({ pgn }: ChessViewerProps) {
           {analysisEnabled ? '🔍' : '🔎'}
         </button>
       </div>
+
+      {opening && (
+        <div className="chess-opening">
+          <span className="chess-opening-eco">{opening.eco}</span>
+          <span className="chess-opening-name">{opening.name}</span>
+        </div>
+      )}
+
+      {analysisEnabled && analysis && (
+        <div className="chess-analysis">
+          <div className="chess-analysis-score">
+            {loading ? 'Analyzing...' : formatScore(analysis)}
+            {!loading && analysis.depth && <span className="chess-analysis-depth"> (d{analysis.depth})</span>}
+          </div>
+          {analysis.pv && analysis.pv.length > 0 && (
+            <div className="chess-analysis-line">
+              {uciLinesToSan(currentPosition, analysis.pv.slice(0, 8)).join(' ')}
+              {analysis.pv.length > 8 && '...'}
+            </div>
+          )}
+        </div>
+      )}
 
       {moves.length > 0 && (
         <ChessMoveList

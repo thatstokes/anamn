@@ -167,9 +167,9 @@ function AppContent() {
   useEffect(() => {
     if (hasRestoredNote.current || notes.length === 0) return;
 
-    window.api.config.get().then((config) => {
-      if (config.lastOpenedNote) {
-        const note = notes.find((n) => n.path === config.lastOpenedNote);
+    window.api.state.get().then((state) => {
+      if (state.lastOpenedNote) {
+        const note = notes.find((n) => n.path === state.lastOpenedNote);
         if (note) {
           hasRestoredNote.current = true;
           handleSelectNote(note);
@@ -205,7 +205,7 @@ function AppContent() {
     setContent(text);
     lastSavedContentRef.current = text;
     trackRecentNote(note.title);
-    window.api.config.set({ lastOpenedNote: note.path });
+    window.api.state.set({ lastOpenedNote: note.path });
     const inboundLinks = await window.api.notes.getBacklinks(note.title);
     setBacklinks(inboundLinks);
   };
@@ -273,7 +273,7 @@ function AppContent() {
       );
       setRecentNotes((prev) => {
         const updated = prev.map((t) => (t === selectedNote.title ? newTitle : t));
-        window.api.config.set({ recentNotes: updated });
+        window.api.state.set({ recentNotes: updated });
         return updated;
       });
       setSelectedNote(renamedNote);

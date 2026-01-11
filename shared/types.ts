@@ -41,18 +41,27 @@ export interface Config {
   notes_dir: string;
   default_view_mode: ViewMode;
   shortcuts: KeyboardShortcuts;
-  recentNotes: string[]; // Array of note titles, most recent first
   rightPanelSections: RightPanelSection[]; // Sections to show, in order
   rightPanelOpen: boolean; // Whether right panel is open on startup
   collapsedSections: RightPanelSection[]; // Which sections are collapsed
-  lastOpenedNote: string | null; // Path of the last opened note
   dailyNote: DailyNoteConfig; // Daily note settings
   theme: ThemeConfig; // Theme settings
+}
+
+// App state (not user-configurable, stored separately)
+export interface AppState {
+  recentNotes: string[]; // Array of note titles, most recent first
+  lastOpenedNote: string | null; // Path of the last opened note
 }
 
 export interface ConfigApi {
   get: () => Promise<Config>;
   set: (updates: Partial<Config>) => Promise<Config>;
+}
+
+export interface StateApi {
+  get: () => Promise<AppState>;
+  set: (updates: Partial<AppState>) => Promise<AppState>;
 }
 
 export interface ThemeApi {
@@ -107,6 +116,7 @@ export interface Api {
   workspace: WorkspaceApi;
   notes: NotesApi;
   config: ConfigApi;
+  state: StateApi;
   watcher: WatcherApi;
   theme: ThemeApi;
   chess: ChessApi;

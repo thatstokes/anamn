@@ -23,10 +23,10 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
   const [backlinks, setBacklinks] = useState<Note[]>([]);
   const [recentNotes, setRecentNotes] = useState<string[]>([]);
 
-  // Load recentNotes from config on mount
+  // Load recentNotes from app state on mount
   useEffect(() => {
-    window.api.config.get().then((config) => {
-      setRecentNotes(config.recentNotes);
+    window.api.state.get().then((state) => {
+      setRecentNotes(state.recentNotes);
     });
   }, []);
 
@@ -38,7 +38,7 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
     setRecentNotes((prev) => {
       const filtered = prev.filter((t) => t !== title);
       const updated = [title, ...filtered].slice(0, 10);
-      window.api.config.set({ recentNotes: updated });
+      window.api.state.set({ recentNotes: updated });
       return updated;
     });
   }, []);

@@ -32,10 +32,15 @@ const mockApi = {
         commandPalette: "Ctrl+Shift+P",
         rightPanel: "Ctrl+G",
       },
-      recentNotes: [],
       rightPanelSections: ["links", "graph"],
       rightPanelOpen: false,
       collapsedSections: [],
+    }),
+    set: vi.fn().mockResolvedValue(undefined),
+  },
+  state: {
+    get: vi.fn().mockResolvedValue({
+      recentNotes: [],
       lastOpenedNote: null,
     }),
     set: vi.fn().mockResolvedValue(undefined),

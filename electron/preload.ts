@@ -24,6 +24,10 @@ const api: Api = {
     get: () => ipcRenderer.invoke("config:get"),
     set: (updates) => ipcRenderer.invoke("config:set", updates),
   },
+  state: {
+    get: () => ipcRenderer.invoke("state:get"),
+    set: (updates) => ipcRenderer.invoke("state:set", updates),
+  },
   theme: {
     loadCustomCss: (path: string) => ipcRenderer.invoke("theme:loadCustomCss", path),
     selectCustomCss: () => ipcRenderer.invoke("theme:selectCustomCss"),

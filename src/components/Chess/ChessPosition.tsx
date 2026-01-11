@@ -102,6 +102,13 @@ export function ChessPosition({ fen }: ChessPositionProps) {
         </button>
       </div>
 
+      {opening && (
+        <div className="chess-opening">
+          <span className="chess-opening-eco">{opening.eco}</span>
+          <span className="chess-opening-name">{opening.name}</span>
+        </div>
+      )}
+
       {analysisEnabled && analysis && (
         <div className="chess-analysis">
           <div className="chess-analysis-score">
@@ -119,13 +126,6 @@ export function ChessPosition({ fen }: ChessPositionProps) {
               {analysis.pv.length > 5 ? '...' : ''}
             </div>
           )}
-        </div>
-      )}
-
-      {opening && (
-        <div className="chess-opening">
-          <span className="chess-opening-eco">{opening.eco}</span>
-          <span className="chess-opening-name">{opening.name}</span>
         </div>
       )}
     </div>

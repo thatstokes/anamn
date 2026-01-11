@@ -35,11 +35,9 @@ export interface Config {
   notes_dir: string;
   default_view_mode: ViewMode;
   shortcuts: KeyboardShortcuts;
-  recentNotes: string[]; // Array of note titles, most recent first
   rightPanelSections: RightPanelSection[]; // Sections to show, in order
   rightPanelOpen: boolean; // Whether right panel is open on startup
   collapsedSections: RightPanelSection[]; // Which sections are collapsed
-  lastOpenedNote: string | null; // Path of the last opened note
   dailyNote: DailyNoteConfig; // Daily note settings
   theme: ThemeConfig; // Theme settings
 }
@@ -69,11 +67,9 @@ const DEFAULT_CONFIG: Config = {
   notes_dir: "",
   default_view_mode: "rendered",
   shortcuts: DEFAULT_SHORTCUTS,
-  recentNotes: [],
   rightPanelSections: ["recents", "links", "tags", "graph"],
   rightPanelOpen: true,
   collapsedSections: [],
-  lastOpenedNote: null,
   dailyNote: DEFAULT_DAILY_NOTE,
   theme: DEFAULT_THEME,
 };
@@ -129,11 +125,9 @@ export async function loadConfig(): Promise<Config> {
           ...(parsed.theme ?? {}),
         },
         // Only override arrays if explicitly provided
-        recentNotes: parsed.recentNotes ?? config.recentNotes,
         rightPanelSections: parsed.rightPanelSections ?? config.rightPanelSections,
         rightPanelOpen: parsed.rightPanelOpen ?? config.rightPanelOpen,
         collapsedSections: parsed.collapsedSections ?? config.collapsedSections,
-        lastOpenedNote: parsed.lastOpenedNote ?? config.lastOpenedNote,
       };
     } catch {
       // File doesn't exist or invalid, continue to next
