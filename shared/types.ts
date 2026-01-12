@@ -30,6 +30,33 @@ export interface DailyNoteConfig {
   suffix: string;  // Text after date, default ""
 }
 
+export interface ChessConfig {
+  engineDepth: number;  // Stockfish search depth (10-30, default 20)
+  multiPv: number;      // Number of lines to show (1-3, default 1)
+}
+
+export interface ChessImportConfig {
+  lichessUsername?: string;       // User's Lichess username
+  chessComUsername?: string;      // User's Chess.com username
+  gameNoteTitleFormat: string;    // Template for note titles, default "{me} vs {opponent} {gameId}"
+}
+
+export interface ChessPlayerInfo {
+  username: string;
+  rating?: number;
+}
+
+export interface ChessGameData {
+  pgn: string;
+  white: ChessPlayerInfo;
+  black: ChessPlayerInfo;
+  date: string;           // ISO date string (YYYY-MM-DD)
+  result: string;         // "1-0", "0-1", "1/2-1/2", "*"
+  gameId: string;
+  source: "lichess" | "chesscom";
+  url: string;
+}
+
 export type ThemeMode = "dark" | "light" | "custom";
 
 export interface ThemeConfig {
@@ -46,6 +73,8 @@ export interface Config {
   collapsedSections: RightPanelSection[]; // Which sections are collapsed
   dailyNote: DailyNoteConfig; // Daily note settings
   theme: ThemeConfig; // Theme settings
+  chess: ChessConfig; // Chess engine settings
+  chessImport: ChessImportConfig; // Chess game import settings
 }
 
 // App state (not user-configurable, stored separately)
@@ -99,17 +128,28 @@ export interface WatcherApi {
 }
 
 // Chess engine analysis types
-export interface EngineAnalysis {
+export interface EngineLine {
   score: number;        // Centipawns (50 = +0.5 pawns)
   mate: number | null;  // Mate in N moves (null if not mate)
+  pv: string[];         // Principal variation (UCI moves)
+}
+
+export interface EngineAnalysis {
+  score: number;        // Centipawns (50 = +0.5 pawns) - best line
+  mate: number | null;  // Mate in N moves (null if not mate) - best line
   bestMove: string;     // UCI format (e.g., "e2e4")
-  pv: string[];         // Principal variation
+  pv: string[];         // Principal variation - best line
   depth: number;        // Search depth reached
+  lines: EngineLine[];  // All lines (MultiPV)
 }
 
 export interface ChessApi {
-  analyze: (fen: string, depth?: number) => Promise<EngineAnalysis>;
+  analyze: (fen: string, depth?: number, multiPv?: number) => Promise<EngineAnalysis>;
   stopAnalysis: () => Promise<void>;
+}
+
+export interface ChessImportApi {
+  fetchGame: (url: string) => Promise<ChessGameData>;
 }
 
 export interface Api {
@@ -120,6 +160,7 @@ export interface Api {
   watcher: WatcherApi;
   theme: ThemeApi;
   chess: ChessApi;
+  chessImport: ChessImportApi;
 }
 
 declare global {

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import type { Note } from "../shared/types.js";
+import type { Note, ChessGameData } from "../shared/types.js";
 import { getUniqueLinks } from "../shared/links.js";
 import { getUniqueTags } from "../shared/tags.js";
 
@@ -105,6 +105,7 @@ function AppContent() {
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameTitle, setRenameTitle] = useState("");
   const [contextMenu, setContextMenu] = useState<{ note: Note; x: number; y: number } | null>(null);
+  const [isImportingChess, setIsImportingChess] = useState(false);
 
   // Find in note hook
   const {
@@ -229,6 +230,69 @@ function AppContent() {
     } catch (err) {
       console.error("Failed to create note:", err);
       alert(err instanceof Error ? err.message : "Failed to create note");
+    }
+  };
+
+  const handleImportChess = async (url: string) => {
+    setIsImportingChess(true);
+    try {
+      // Fetch game data
+      const gameData: ChessGameData = await window.api.chessImport.fetchGame(url);
+
+      // Get config for title format and usernames
+      const config = await window.api.config.get();
+      const { lichessUsername, chessComUsername, gameNoteTitleFormat } = config.chessImport;
+
+      // Determine if user is white or black based on configured username
+      const username = gameData.source === "lichess" ? lichessUsername : chessComUsername;
+      const isWhite = username?.toLowerCase() === gameData.white.username.toLowerCase();
+      const isBlack = username?.toLowerCase() === gameData.black.username.toLowerCase();
+      const isMe = isWhite || isBlack;
+
+      // Build note title using format template
+      let title = gameNoteTitleFormat
+        .replace("{white}", gameData.white.username)
+        .replace("{black}", gameData.black.username)
+        .replace("{date}", gameData.date)
+        .replace("{gameId}", gameData.gameId)
+        .replace("{result}", gameData.result);
+
+      if (isMe) {
+        const me = isWhite ? gameData.white.username : gameData.black.username;
+        const opponent = isWhite ? gameData.black.username : gameData.white.username;
+        title = title.replace("{me}", me).replace("{opponent}", opponent);
+      } else {
+        // If not identified, use white vs black
+        title = title.replace("{me}", gameData.white.username).replace("{opponent}", gameData.black.username);
+      }
+
+      // Build note content with PGN
+      // If user played as black, add FlipBoard header to PGN
+      let pgn = gameData.pgn;
+      if (isBlack) {
+        // Insert FlipBoard header after other headers
+        const headerEndIdx = pgn.lastIndexOf(']');
+        if (headerEndIdx !== -1) {
+          pgn = pgn.slice(0, headerEndIdx + 1) + '\n[FlipBoard "true"]' + pgn.slice(headerEndIdx + 1);
+        }
+      }
+      const noteContent = `\`\`\`pgn\n${pgn}\n\`\`\`\n`;
+
+      // Create the note
+      const note = await window.api.notes.create(title.trim());
+      await window.api.notes.write(note.path, noteContent);
+
+      setNotes((prev) => [...prev, note].sort((a, b) => a.title.localeCompare(b.title)));
+      setSelectedNote(note);
+      setContent(noteContent);
+      lastSavedContentRef.current = noteContent;
+      setNewNoteTitle(null);
+      trackRecentNote(note.title);
+    } catch (err) {
+      console.error("Failed to import chess game:", err);
+      alert(err instanceof Error ? err.message : "Failed to import chess game");
+    } finally {
+      setIsImportingChess(false);
     }
   };
 
@@ -475,6 +539,8 @@ function AppContent() {
           onCreateNote={handleCreateNote}
           onContextMenu={handleContextMenu}
           onChangeWorkspace={handleSelectWorkspace}
+          onImportChess={handleImportChess}
+          isImporting={isImportingChess}
         />
         {showGraphView ? (
           <div className="full-graph-container">

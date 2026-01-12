@@ -6,6 +6,7 @@ import { registerConfigHandlers } from "./ipc/config.js";
 import { registerStateHandlers } from "./ipc/state.js";
 import { registerThemeHandlers } from "./ipc/theme.js";
 import { registerChessHandlers } from "./ipc/chess.js";
+import { registerChessImportHandlers } from "./ipc/chessImport.js";
 
 const isDev = !app.isPackaged;
 
@@ -24,6 +25,7 @@ registerConfigHandlers();
 registerStateHandlers();
 registerThemeHandlers();
 registerChessHandlers();
+registerChessImportHandlers();
 
 function createWindow() {
   const win = new BrowserWindow({

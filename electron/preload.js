@@ -32,8 +32,11 @@ var api = {
     selectCustomCss: () => import_electron.ipcRenderer.invoke("theme:selectCustomCss")
   },
   chess: {
-    analyze: (fen, depth) => import_electron.ipcRenderer.invoke("chess:analyze", fen, depth),
+    analyze: (fen, depth, multiPv) => import_electron.ipcRenderer.invoke("chess:analyze", fen, depth, multiPv),
     stopAnalysis: () => import_electron.ipcRenderer.invoke("chess:stopAnalysis")
+  },
+  chessImport: {
+    fetchGame: (url) => import_electron.ipcRenderer.invoke("chessImport:fetchGame", url)
   },
   watcher: {
     onFileAdded: (callback) => {

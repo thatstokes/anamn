@@ -159,8 +159,14 @@
 }
 
 /* Board with Eval Bar layout */
-.chess-board-with-eval {
+.chess-layout {
   display: flex;
+  gap: 0.5rem;
+}
+
+.chess-main {
+  display: flex;
+  flex-direction: column;
   gap: 0.5rem;
 }
 
@@ -202,6 +208,15 @@
 
 .eval-bar-score.loading {
   opacity: 0.5;
+}
+
+.eval-bar.disabled {
+  opacity: 0.3;
+}
+
+.eval-bar.disabled .eval-bar-black,
+.eval-bar.disabled .eval-bar-white {
+  filter: grayscale(100%);
 }
 
 /* Analysis Toggle Button Active State */
@@ -274,4 +289,160 @@
   font-weight: 600;
   color: var(--text-primary);
   margin-right: 0.5rem;
+}
+
+/* NAG (Numeric Annotation Glyph) Styles */
+.chess-nag {
+  margin-left: 1px;
+  font-weight: bold;
+}
+
+/* Move quality annotations */
+.chess-move.nag-brilliant,
+.chess-nag.nag-brilliant {
+  color: #1baca6;
+}
+
+.chess-move.nag-good,
+.chess-nag.nag-good {
+  color: #96bc4b;
+}
+
+.chess-move.nag-interesting,
+.chess-nag.nag-interesting {
+  color: #9bbb59;
+}
+
+.chess-move.nag-dubious,
+.chess-nag.nag-dubious {
+  color: #c9a227;
+}
+
+.chess-move.nag-mistake,
+.chess-nag.nag-mistake {
+  color: #e6912c;
+}
+
+.chess-move.nag-blunder,
+.chess-nag.nag-blunder {
+  color: #ca3431;
+}
+
+/* Keep active state colors intact */
+.chess-move.active.nag-brilliant,
+.chess-move.active.nag-good,
+.chess-move.active.nag-interesting,
+.chess-move.active.nag-dubious,
+.chess-move.active.nag-mistake,
+.chess-move.active.nag-blunder {
+  color: white;
+}
+
+/* Position evaluation NAGs */
+.chess-nag.nag-equal,
+.chess-nag.nag-unclear {
+  color: var(--text-muted);
+}
+
+.chess-nag.nag-white-slight,
+.chess-nag.nag-white-moderate,
+.chess-nag.nag-white-decisive {
+  color: #a0a0a0;
+}
+
+.chess-nag.nag-black-slight,
+.chess-nag.nag-black-moderate,
+.chess-nag.nag-black-decisive {
+  color: #505050;
+}
+
+/* Settings Panel */
+.chess-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+}
+
+.chess-settings-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+}
+
+.chess-settings-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  min-width: 90px;
+}
+
+.chess-settings-slider {
+  flex: 1;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--border-light);
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.chess-settings-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  cursor: pointer;
+}
+
+.chess-settings-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  cursor: pointer;
+  border: none;
+}
+
+.chess-settings-value {
+  font-size: 13px;
+  font-family: monospace;
+  color: var(--text-primary);
+  min-width: 24px;
+  text-align: right;
+}
+
+/* Multi-line Analysis Display */
+.chess-analysis-header {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.chess-analysis-multi-line {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  padding: 0.125rem 0;
+}
+
+.chess-analysis-line-score {
+  font-family: monospace;
+  font-weight: bold;
+  color: var(--text-primary);
+  min-width: 48px;
+}
+
+.chess-analysis-line-pv {
+  font-family: monospace;
+  font-size: 12px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

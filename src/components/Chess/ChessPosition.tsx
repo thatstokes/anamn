@@ -5,12 +5,16 @@ import { EvalBar } from './EvalBar';
 import { useStockfish, formatScore } from './useStockfish';
 import { useOpening } from './useOpening';
 import { uciToSan, uciLinesToSan, parseUciMove } from './chessUtils';
+import { useUI } from '../../state/contexts/UIContext.js';
 
 export function ChessPosition({ fen }: ChessPositionProps) {
+  const { chessConfig } = useUI();
   const [analysisEnabled, setAnalysisEnabled] = useState(false);
+  const [flipped, setFlipped] = useState(false);
   const { analysis, loading } = useStockfish(fen, {
     enabled: analysisEnabled,
-    depth: 20,
+    depth: chessConfig.engineDepth,
+    multiPv: chessConfig.multiPv,
     debounceMs: 300,
   });
 
@@ -28,19 +32,27 @@ export function ChessPosition({ fen }: ChessPositionProps) {
 
   return (
     <div className="chess-position">
-      <div className="chess-board-with-eval">
-        {analysisEnabled && <EvalBar analysis={analysis} loading={loading} />}
-        <ChessBoard position={fen} size={400} arrows={arrows} />
-      </div>
-
-      <div className="chess-nav">
-        <button
-          className={`chess-nav-button chess-analysis-toggle ${analysisEnabled ? 'active' : ''}`}
-          onClick={() => setAnalysisEnabled(!analysisEnabled)}
-          title={analysisEnabled ? 'Disable analysis' : 'Enable Stockfish analysis'}
-        >
-          {analysisEnabled ? '🔍' : '🔎'}
-        </button>
+      <div className="chess-layout">
+        <EvalBar analysis={analysis} loading={loading} disabled={!analysisEnabled} />
+        <div className="chess-main">
+          <ChessBoard position={fen} size={400} arrows={arrows} flipped={flipped} />
+          <div className="chess-nav">
+            <button
+              className={`chess-nav-button chess-analysis-toggle ${analysisEnabled ? 'active' : ''}`}
+              onClick={() => setAnalysisEnabled(!analysisEnabled)}
+              title={analysisEnabled ? 'Disable analysis' : 'Enable Stockfish analysis'}
+            >
+              {analysisEnabled ? '🔍' : '🔎'}
+            </button>
+            <button
+              className={`chess-nav-button ${flipped ? 'active' : ''}`}
+              onClick={() => setFlipped(!flipped)}
+              title="Flip board"
+            >
+              ⇅
+            </button>
+          </div>
+        </div>
       </div>
 
       {opening && (

@@ -1,7 +1,7 @@
 // Stockfish chess engine wrapper for Electron main process
 // Uses nmrugg/stockfish.js which runs in Node.js
 
-import type { EngineAnalysis } from "../shared/types.js";
+import type { EngineAnalysis, EngineLine } from "../shared/types.js";
 import path from "path";
 import fs from "fs";
 import { app } from "electron";
@@ -31,6 +31,8 @@ class StockfishWrapper {
   private analyzing = false;
   private currentResolve: ((analysis: EngineAnalysis) => void) | null = null;
   private currentAnalysis: Partial<EngineAnalysis> = {};
+  private currentLines: Map<number, EngineLine> = new Map(); // MultiPV lines by index
+  private currentMultiPv = 1;
 
   async initialize(): Promise<void> {
     if (this.initialized) return;
@@ -137,14 +139,31 @@ class StockfishWrapper {
     }
   }
 
-  private handleMessage(message: string): void {
+  private handleMessage(message: unknown): void {
     // Skip non-string messages
     if (typeof message !== "string") return;
 
     // Parse info lines during analysis
     if (this.analyzing && message.startsWith("info depth")) {
-      const analysis = this.parseInfo(message);
-      Object.assign(this.currentAnalysis, analysis);
+      const { lineIndex, line, depth } = this.parseInfo(message);
+
+      // Store this line
+      if (line) {
+        this.currentLines.set(lineIndex, line);
+      }
+
+      // Update depth
+      if (depth !== undefined) {
+        this.currentAnalysis.depth = depth;
+      }
+
+      // Update primary analysis from first line
+      const firstLine = this.currentLines.get(1);
+      if (firstLine) {
+        this.currentAnalysis.score = firstLine.score;
+        this.currentAnalysis.mate = firstLine.mate;
+        this.currentAnalysis.pv = firstLine.pv;
+      }
     }
 
     // Parse bestmove
@@ -154,6 +173,15 @@ class StockfishWrapper {
 
       this.analyzing = false;
 
+      // Collect all lines in order
+      const lines: EngineLine[] = [];
+      for (let i = 1; i <= this.currentMultiPv; i++) {
+        const line = this.currentLines.get(i);
+        if (line) {
+          lines.push(line);
+        }
+      }
+
       if (this.currentResolve) {
         this.currentResolve({
           score: this.currentAnalysis.score ?? 0,
@@ -161,41 +189,51 @@ class StockfishWrapper {
           bestMove: this.currentAnalysis.bestMove ?? "",
           pv: this.currentAnalysis.pv ?? [],
           depth: this.currentAnalysis.depth ?? 0,
+          lines,
         });
         this.currentResolve = null;
       }
     }
   }
 
-  private parseInfo(line: string): Partial<EngineAnalysis> {
-    const result: Partial<EngineAnalysis> = {};
+  private parseInfo(message: string): { lineIndex: number; line: EngineLine | null; depth: number | undefined } {
+    // Extract multipv index (defaults to 1)
+    const multipvMatch = message.match(/multipv (\d+)/);
+    const lineIndex = multipvMatch && multipvMatch[1] ? parseInt(multipvMatch[1], 10) : 1;
 
     // Extract depth
-    const depthMatch = line.match(/depth (\d+)/);
-    if (depthMatch && depthMatch[1]) {
-      result.depth = parseInt(depthMatch[1], 10);
-    }
+    const depthMatch = message.match(/depth (\d+)/);
+    const depth = depthMatch && depthMatch[1] ? parseInt(depthMatch[1], 10) : undefined;
 
     // Extract score (centipawns or mate)
-    const cpMatch = line.match(/score cp (-?\d+)/);
+    let score = 0;
+    let mate: number | null = null;
+
+    const cpMatch = message.match(/score cp (-?\d+)/);
     if (cpMatch && cpMatch[1]) {
-      result.score = parseInt(cpMatch[1], 10);
-      result.mate = null;
+      score = parseInt(cpMatch[1], 10);
     }
 
-    const mateMatch = line.match(/score mate (-?\d+)/);
+    const mateMatch = message.match(/score mate (-?\d+)/);
     if (mateMatch && mateMatch[1]) {
-      result.mate = parseInt(mateMatch[1], 10);
-      result.score = result.mate > 0 ? 10000 : -10000;
+      mate = parseInt(mateMatch[1], 10);
+      score = mate > 0 ? 10000 : -10000;
     }
 
     // Extract principal variation
-    const pvMatch = line.match(/ pv (.+)$/);
-    if (pvMatch && pvMatch[1]) {
-      result.pv = pvMatch[1].split(" ");
+    const pvMatch = message.match(/ pv (.+)$/);
+    const pv = pvMatch && pvMatch[1] ? pvMatch[1].split(" ") : [];
+
+    // Only return a line if we have a PV
+    if (pv.length === 0) {
+      return { lineIndex, line: null, depth };
     }
 
-    return result;
+    return {
+      lineIndex,
+      line: { score, mate, pv },
+      depth,
+    };
   }
 
   private parseBestMove(line: string): string {
@@ -203,7 +241,7 @@ class StockfishWrapper {
     return match && match[1] ? match[1] : "";
   }
 
-  async analyze(fen: string, depth: number = 20): Promise<EngineAnalysis> {
+  async analyze(fen: string, depth: number = 20, multiPv: number = 1): Promise<EngineAnalysis> {
     if (!this.initialized || !this.engine) {
       await this.initialize();
     }
@@ -220,10 +258,14 @@ class StockfishWrapper {
 
     this.analyzing = true;
     this.currentAnalysis = {};
+    this.currentLines.clear();
+    this.currentMultiPv = Math.max(1, Math.min(5, multiPv)); // Clamp between 1-5
 
     return new Promise((resolve) => {
       this.currentResolve = resolve;
 
+      // Set MultiPV option
+      this.engine!.sendCommand(`setoption name MultiPV value ${this.currentMultiPv}`);
       this.engine!.sendCommand(`position fen ${fen}`);
       this.engine!.sendCommand(`go depth ${depth}`);
     });

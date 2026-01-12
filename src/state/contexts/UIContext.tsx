@@ -1,10 +1,22 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from "react";
-import type { KeyboardShortcuts, RightPanelSection } from "../../../shared/types.js";
+import type { KeyboardShortcuts, RightPanelSection, ChessConfig, ChessImportConfig } from "../../../shared/types.js";
 import { useDebouncedSearch } from "../hooks/useDebouncedSearch.js";
+
+const DEFAULT_CHESS_CONFIG: ChessConfig = {
+  engineDepth: 20,
+  multiPv: 1,
+};
+
+const DEFAULT_CHESS_IMPORT_CONFIG: ChessImportConfig = {
+  gameNoteTitleFormat: "{me} vs {opponent} {gameId}",
+};
 
 interface UIContextValue {
   // Shortcuts
   shortcuts: KeyboardShortcuts | null;
+  // Chess config
+  chessConfig: ChessConfig;
+  chessImportConfig: ChessImportConfig;
   // Right panel
   showRightPanel: boolean;
   setShowRightPanel: React.Dispatch<React.SetStateAction<boolean>>;
@@ -40,6 +52,8 @@ const UIContext = createContext<UIContextValue | null>(null);
 
 export function UIProvider({ children }: { children: React.ReactNode }) {
   const [shortcuts, setShortcuts] = useState<KeyboardShortcuts | null>(null);
+  const [chessConfig, setChessConfig] = useState<ChessConfig>(DEFAULT_CHESS_CONFIG);
+  const [chessImportConfig, setChessImportConfig] = useState<ChessImportConfig>(DEFAULT_CHESS_IMPORT_CONFIG);
   const [showRightPanel, setShowRightPanel] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -65,6 +79,8 @@ export function UIProvider({ children }: { children: React.ReactNode }) {
     setRightPanelSections(config.rightPanelSections);
     setShowRightPanel(config.rightPanelOpen);
     setCollapsedSections(new Set(config.collapsedSections));
+    setChessConfig(config.chess ?? DEFAULT_CHESS_CONFIG);
+    setChessImportConfig(config.chessImport ?? DEFAULT_CHESS_IMPORT_CONFIG);
   }, []);
 
   // Load config on mount
@@ -87,6 +103,8 @@ export function UIProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<UIContextValue>(() => ({
     shortcuts,
+    chessConfig,
+    chessImportConfig,
     showRightPanel,
     setShowRightPanel,
     rightPanelSections,
@@ -112,6 +130,8 @@ export function UIProvider({ children }: { children: React.ReactNode }) {
     findInputRef,
   }), [
     shortcuts,
+    chessConfig,
+    chessImportConfig,
     showRightPanel,
     rightPanelSections,
     collapsedSections,

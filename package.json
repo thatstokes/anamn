@@ -1,6 +1,6 @@
 {
   "name": "anamn",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "description": "Anamn is a local-first, single-user second brain built on Markdown files.",
   "main": "electron-dist/main.js",

@@ -5,13 +5,16 @@ import type {
   KeyboardShortcuts,
   DailyNoteConfig,
   RightPanelSection,
+  ChessConfig,
+  ChessImportConfig,
 } from "../../../shared/types.js";
 import { GeneralSection } from "./sections/GeneralSection.js";
 import { ShortcutsSection } from "./sections/ShortcutsSection.js";
 import { DailyNotesSection } from "./sections/DailyNotesSection.js";
 import { AppearanceSection } from "./sections/AppearanceSection.js";
+import { ChessSection } from "./sections/ChessSection.js";
 
-type SettingsSection = "general" | "shortcuts" | "dailyNotes" | "appearance";
+type SettingsSection = "general" | "shortcuts" | "dailyNotes" | "appearance" | "chess";
 
 interface SettingsModalProps {
   onClose: () => void;
@@ -23,6 +26,7 @@ const SECTIONS: { id: SettingsSection; label: string }[] = [
   { id: "shortcuts", label: "Shortcuts" },
   { id: "dailyNotes", label: "Daily Notes" },
   { id: "appearance", label: "Appearance" },
+  { id: "chess", label: "Chess" },
 ];
 
 export function SettingsModal({ onClose, onSave }: SettingsModalProps) {
@@ -52,6 +56,13 @@ export function SettingsModal({ onClose, onSave }: SettingsModalProps) {
     "tags",
     "graph",
   ]);
+  const [chess, setChess] = useState<ChessConfig>({
+    engineDepth: 20,
+    multiPv: 1,
+  });
+  const [chessImport, setChessImport] = useState<ChessImportConfig>({
+    gameNoteTitleFormat: "{me} vs {opponent} {gameId}",
+  });
 
   // Original config for reset
   const [originalConfig, setOriginalConfig] = useState<Partial<Config>>({});
@@ -63,11 +74,15 @@ export function SettingsModal({ onClose, onSave }: SettingsModalProps) {
       setShortcuts(config.shortcuts);
       setDailyNote(config.dailyNote);
       setRightPanelSections(config.rightPanelSections);
+      setChess(config.chess ?? { engineDepth: 20, multiPv: 1 });
+      setChessImport(config.chessImport ?? { gameNoteTitleFormat: "{me} vs {opponent} {gameId}" });
       setOriginalConfig({
         default_view_mode: config.default_view_mode,
         shortcuts: config.shortcuts,
         dailyNote: config.dailyNote,
         rightPanelSections: config.rightPanelSections,
+        chess: config.chess,
+        chessImport: config.chessImport,
       });
       setLoading(false);
     });
@@ -89,6 +104,8 @@ export function SettingsModal({ onClose, onSave }: SettingsModalProps) {
     setShortcuts(originalConfig.shortcuts ?? shortcuts);
     setDailyNote(originalConfig.dailyNote ?? dailyNote);
     setRightPanelSections(originalConfig.rightPanelSections ?? rightPanelSections);
+    setChess(originalConfig.chess ?? chess);
+    setChessImport(originalConfig.chessImport ?? chessImport);
   };
 
   const handleSave = () => {
@@ -97,6 +114,8 @@ export function SettingsModal({ onClose, onSave }: SettingsModalProps) {
       shortcuts,
       dailyNote,
       rightPanelSections,
+      chess,
+      chessImport,
     });
     onClose();
   };
@@ -165,6 +184,14 @@ export function SettingsModal({ onClose, onSave }: SettingsModalProps) {
               <AppearanceSection
                 rightPanelSections={rightPanelSections}
                 setRightPanelSections={setRightPanelSections}
+              />
+            )}
+            {activeSection === "chess" && (
+              <ChessSection
+                chess={chess}
+                setChess={setChess}
+                chessImport={chessImport}
+                setChessImport={setChessImport}
               />
             )}
           </div>

@@ -7,4 +7,6 @@ export { EvalBar } from './EvalBar';
 export { Piece } from './pieces';
 export { useStockfish, formatScore, getEvalBarPercent } from './useStockfish';
 export { useOpening } from './useOpening';
+export { LichessEmbed } from './LichessEmbed';
+export { ChessComEmbed } from './ChessComEmbed';
 export * from './types';

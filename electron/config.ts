@@ -31,6 +31,17 @@ export interface ThemeConfig {
   customCssPath?: string;  // Path to user's custom CSS file
 }
 
+export interface ChessConfig {
+  engineDepth: number;  // Stockfish search depth (10-30, default 20)
+  multiPv: number;      // Number of lines to show (1-3, default 1)
+}
+
+export interface ChessImportConfig {
+  lichessUsername?: string;       // User's Lichess username
+  chessComUsername?: string;      // User's Chess.com username
+  gameNoteTitleFormat: string;    // Template for note titles
+}
+
 export interface Config {
   notes_dir: string;
   default_view_mode: ViewMode;
@@ -40,6 +51,8 @@ export interface Config {
   collapsedSections: RightPanelSection[]; // Which sections are collapsed
   dailyNote: DailyNoteConfig; // Daily note settings
   theme: ThemeConfig; // Theme settings
+  chess: ChessConfig; // Chess engine settings
+  chessImport: ChessImportConfig; // Chess game import settings
 }
 
 const DEFAULT_SHORTCUTS: KeyboardShortcuts = {
@@ -63,6 +76,15 @@ const DEFAULT_THEME: ThemeConfig = {
   mode: "dark",
 };
 
+const DEFAULT_CHESS: ChessConfig = {
+  engineDepth: 20,
+  multiPv: 1,
+};
+
+const DEFAULT_CHESS_IMPORT: ChessImportConfig = {
+  gameNoteTitleFormat: "{me} vs {opponent} {gameId}",
+};
+
 const DEFAULT_CONFIG: Config = {
   notes_dir: "",
   default_view_mode: "rendered",
@@ -72,6 +94,8 @@ const DEFAULT_CONFIG: Config = {
   collapsedSections: [],
   dailyNote: DEFAULT_DAILY_NOTE,
   theme: DEFAULT_THEME,
+  chess: DEFAULT_CHESS,
+  chessImport: DEFAULT_CHESS_IMPORT,
 };
 
 const CONFIG_FILENAME = "anamn.config.json";
@@ -123,6 +147,14 @@ export async function loadConfig(): Promise<Config> {
         theme: {
           ...config.theme,
           ...(parsed.theme ?? {}),
+        },
+        chess: {
+          ...config.chess,
+          ...(parsed.chess ?? {}),
+        },
+        chessImport: {
+          ...config.chessImport,
+          ...(parsed.chessImport ?? {}),
         },
         // Only override arrays if explicitly provided
         rightPanelSections: parsed.rightPanelSections ?? config.rightPanelSections,

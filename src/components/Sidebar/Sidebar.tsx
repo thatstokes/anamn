@@ -11,6 +11,8 @@ interface SidebarProps {
   onCreateNote: () => void;
   onContextMenu: (e: React.MouseEvent, note: Note) => void;
   onChangeWorkspace: () => void;
+  onImportChess?: (url: string) => Promise<void>;
+  isImporting?: boolean;
 }
 
 export function Sidebar({
@@ -22,6 +24,8 @@ export function Sidebar({
   onCreateNote,
   onContextMenu,
   onChangeWorkspace,
+  onImportChess,
+  isImporting,
 }: SidebarProps) {
   return (
     <div className="sidebar">
@@ -34,6 +38,8 @@ export function Sidebar({
           onChange={setNewNoteTitle}
           onCreate={onCreateNote}
           onCancel={() => setNewNoteTitle(null)}
+          onImportChess={onImportChess}
+          isImporting={isImporting}
         />
       )}
       <NoteList

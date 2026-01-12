@@ -33,9 +33,12 @@ const api: Api = {
     selectCustomCss: () => ipcRenderer.invoke("theme:selectCustomCss"),
   },
   chess: {
-    analyze: (fen: string, depth?: number) =>
-      ipcRenderer.invoke("chess:analyze", fen, depth),
+    analyze: (fen: string, depth?: number, multiPv?: number) =>
+      ipcRenderer.invoke("chess:analyze", fen, depth, multiPv),
     stopAnalysis: () => ipcRenderer.invoke("chess:stopAnalysis"),
+  },
+  chessImport: {
+    fetchGame: (url: string) => ipcRenderer.invoke("chessImport:fetchGame", url),
   },
   watcher: {
     onFileAdded: (callback: (event: FileChangeEvent) => void) => {

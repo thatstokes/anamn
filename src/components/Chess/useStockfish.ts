@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import type { EngineAnalysis } from '../../../shared/types.js';
+import type { EngineAnalysis, EngineLine } from '../../../shared/types.js';
 
 interface UseStockfishOptions {
   enabled?: boolean;
   depth?: number;
+  multiPv?: number;
   debounceMs?: number;
 }
 
@@ -20,28 +21,46 @@ function getSideToMove(fen: string): 'w' | 'b' {
   return (parts[1] === 'b' ? 'b' : 'w');
 }
 
+// Normalize a single line to white's perspective
+function normalizeLine(line: EngineLine, sideToMove: 'w' | 'b'): EngineLine {
+  if (sideToMove === 'b') {
+    return {
+      ...line,
+      score: -line.score,
+      mate: line.mate !== null ? -line.mate : null,
+    };
+  }
+  return line;
+}
+
 // Normalize analysis to always be from white's perspective
 function normalizeAnalysis(analysis: EngineAnalysis, fen: string): EngineAnalysis {
   const sideToMove = getSideToMove(fen);
 
   // UCI scores are from the perspective of the side to move
   // We want scores from white's perspective (positive = white is better)
+  const normalizedLines = analysis.lines.map(line => normalizeLine(line, sideToMove));
+
   if (sideToMove === 'b') {
     return {
       ...analysis,
       score: -analysis.score,
       mate: analysis.mate !== null ? -analysis.mate : null,
+      lines: normalizedLines,
     };
   }
 
-  return analysis;
+  return {
+    ...analysis,
+    lines: normalizedLines,
+  };
 }
 
 export function useStockfish(
   fen: string,
   options: UseStockfishOptions = {}
 ): UseStockfishResult {
-  const { enabled = true, depth = 20, debounceMs = 300 } = options;
+  const { enabled = true, depth = 20, multiPv = 1, debounceMs = 300 } = options;
 
   const [analysis, setAnalysis] = useState<EngineAnalysis | null>(null);
   const [loading, setLoading] = useState(false);
@@ -57,7 +76,7 @@ export function useStockfish(
     setError(null);
 
     try {
-      const result = await window.api.chess.analyze(fen, depth);
+      const result = await window.api.chess.analyze(fen, depth, multiPv);
       // Only update if this is still the current position
       if (currentFen.current === fen) {
         // Normalize score to white's perspective
@@ -72,7 +91,7 @@ export function useStockfish(
         setLoading(false);
       }
     }
-  }, [fen, depth, enabled]);
+  }, [fen, depth, multiPv, enabled]);
 
   useEffect(() => {
     currentFen.current = fen;
@@ -121,6 +140,18 @@ export function formatScore(analysis: EngineAnalysis | null): string {
   }
 
   const score = analysis.score / 100; // Convert centipawns to pawns
+  const sign = score > 0 ? '+' : '';
+  return `${sign}${score.toFixed(2)}`;
+}
+
+// Helper to format a line's score
+export function formatLineScore(line: EngineLine): string {
+  if (line.mate !== null) {
+    const sign = line.mate > 0 ? '+' : '';
+    return `M${sign}${line.mate}`;
+  }
+
+  const score = line.score / 100;
   const sign = score > 0 ? '+' : '';
   return `${sign}${score.toFixed(2)}`;
 }
