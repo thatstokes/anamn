@@ -193,6 +193,8 @@ export function ChessBoard({
   // Player at top/bottom depends on board orientation
   const topPlayer = flipped ? metadata?.whitePlayer : metadata?.blackPlayer;
   const bottomPlayer = flipped ? metadata?.blackPlayer : metadata?.whitePlayer;
+  const topElo = flipped ? metadata?.whiteElo : metadata?.blackElo;
+  const bottomElo = flipped ? metadata?.blackElo : metadata?.whiteElo;
 
   // Extract metadata values
   const gameDate = metadata?.date;
@@ -222,7 +224,8 @@ export function ChessBoard({
       )}
       {topPlayer && (
         <div className="chess-player-name chess-player-top">
-          {topPlayer}
+          <span className="chess-player-name-text">{topPlayer}</span>
+          {topElo && <span className="chess-player-elo">({topElo})</span>}
         </div>
       )}
       <div
@@ -277,7 +280,8 @@ export function ChessBoard({
       </div>
       {bottomPlayer && (
         <div className="chess-player-name chess-player-bottom">
-          {bottomPlayer}
+          <span className="chess-player-name-text">{bottomPlayer}</span>
+          {bottomElo && <span className="chess-player-elo">({bottomElo})</span>}
         </div>
       )}
     </div>

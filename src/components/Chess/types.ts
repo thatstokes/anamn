@@ -26,6 +26,8 @@ export interface Arrow {
 export interface GameMetadata {
   whitePlayer?: string | undefined;
   blackPlayer?: string | undefined;
+  whiteElo?: string | undefined;
+  blackElo?: string | undefined;
   date?: string | undefined;
   result?: string | undefined;
   timeControl?: string | undefined;

@@ -153,6 +153,8 @@ export function ChessViewer({ pgn, defaultFlipped = false }: ChessViewerProps) {
       // Parse game metadata from headers
       const whiteMatch = /\[White\s+"([^"]+)"\]/i.exec(pgn);
       const blackMatch = /\[Black\s+"([^"]+)"\]/i.exec(pgn);
+      const whiteEloMatch = /\[WhiteElo\s+"([^"]+)"\]/i.exec(pgn);
+      const blackEloMatch = /\[BlackElo\s+"([^"]+)"\]/i.exec(pgn);
       const dateMatch = /\[Date\s+"([^"]+)"\]/i.exec(pgn);
       const resultMatch = /\[Result\s+"([^"]+)"\]/i.exec(pgn);
       const timeControlMatch = /\[TimeControl\s+"([^"]+)"\]/i.exec(pgn);
@@ -160,6 +162,8 @@ export function ChessViewer({ pgn, defaultFlipped = false }: ChessViewerProps) {
       setMetadata({
         whitePlayer: whiteMatch?.[1],
         blackPlayer: blackMatch?.[1],
+        whiteElo: whiteEloMatch?.[1],
+        blackElo: blackEloMatch?.[1],
         date: dateMatch?.[1],
         result: resultMatch?.[1],
         timeControl: timeControlMatch?.[1],

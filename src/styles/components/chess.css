@@ -40,12 +40,24 @@
 
 /* Player Names */
 .chess-player-name {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
   font-size: 13px;
   color: var(--text-secondary);
   padding: 0.125rem 0.25rem;
+}
+
+.chess-player-name-text {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.chess-player-elo {
+  font-size: 11px;
+  color: var(--text-muted);
+  flex-shrink: 0;
 }
 
 .chess-board {
