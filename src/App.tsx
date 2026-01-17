@@ -117,6 +117,58 @@ function AppContent() {
     localStorage.setItem("anamn-expanded-folders", JSON.stringify([...expandedFolders]));
   }, [expandedFolders]);
 
+  // Panel widths (resizable)
+  const [sidebarWidth, setSidebarWidth] = useState(() => {
+    const stored = localStorage.getItem("anamn-sidebar-width");
+    return stored ? parseInt(stored, 10) : 250;
+  });
+  const [rightPanelWidth, setRightPanelWidth] = useState(() => {
+    const stored = localStorage.getItem("anamn-right-panel-width");
+    return stored ? parseInt(stored, 10) : 300;
+  });
+  const [isResizing, setIsResizing] = useState<"sidebar" | "right-panel" | null>(null);
+
+  // Persist panel widths
+  useEffect(() => {
+    localStorage.setItem("anamn-sidebar-width", String(sidebarWidth));
+  }, [sidebarWidth]);
+  useEffect(() => {
+    localStorage.setItem("anamn-right-panel-width", String(rightPanelWidth));
+  }, [rightPanelWidth]);
+
+  // Handle resize drag
+  useEffect(() => {
+    if (!isResizing) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isResizing === "sidebar") {
+        // Sidebar resize: account for nav bar width (56px)
+        const newWidth = Math.max(150, Math.min(500, e.clientX - 56));
+        setSidebarWidth(newWidth);
+      } else if (isResizing === "right-panel") {
+        // Right panel resize: calculate from right edge
+        const newWidth = Math.max(200, Math.min(600, window.innerWidth - e.clientX));
+        setRightPanelWidth(newWidth);
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(null);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isResizing]);
+
   const handleToggleFolder = (path: string) => {
     setExpandedFolders((prev) => {
       const next = new Set(prev);
@@ -573,6 +625,11 @@ function AppContent() {
           onChangeWorkspace={handleSelectWorkspace}
           onImportChess={handleImportChess}
           isImporting={isImportingChess}
+          width={sidebarWidth}
+        />
+        <div
+          className="resize-handle resize-handle-sidebar"
+          onMouseDown={() => setIsResizing("sidebar")}
         />
         {showGraphView ? (
           <div className="full-graph-container">
@@ -616,21 +673,28 @@ function AppContent() {
         />
         )}
         {showRightPanel && (
-          <RightPanel
-            sections={rightPanelSections}
-            setSections={setRightPanelSections}
-            collapsedSections={collapsedSections}
-            toggleSectionCollapse={toggleSectionCollapse}
-            notes={notes}
-            selectedNote={selectedNote}
-            outgoingLinks={outgoingLinks}
-            backlinks={backlinks}
-            recentNotes={recentNotes}
-            tags={noteTags}
-            onSelectNote={handleSelectNote}
-            onLinkClick={handleLinkClick}
-            onTagClick={handleTagClick}
-          />
+          <>
+            <div
+              className="resize-handle resize-handle-right-panel"
+              onMouseDown={() => setIsResizing("right-panel")}
+            />
+            <RightPanel
+              sections={rightPanelSections}
+              setSections={setRightPanelSections}
+              collapsedSections={collapsedSections}
+              toggleSectionCollapse={toggleSectionCollapse}
+              notes={notes}
+              selectedNote={selectedNote}
+              outgoingLinks={outgoingLinks}
+              backlinks={backlinks}
+              recentNotes={recentNotes}
+              tags={noteTags}
+              onSelectNote={handleSelectNote}
+              onLinkClick={handleLinkClick}
+              onTagClick={handleTagClick}
+              width={rightPanelWidth}
+            />
+          </>
         )}
       </div>
       {contextMenu && (

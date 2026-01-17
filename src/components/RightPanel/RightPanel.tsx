@@ -19,6 +19,7 @@ interface RightPanelProps {
   onSelectNote: (note: Note) => void;
   onLinkClick: (linkTitle: string) => void;
   onTagClick: (tag: string) => void;
+  width?: number;
 }
 
 export function RightPanel({
@@ -35,6 +36,7 @@ export function RightPanel({
   onSelectNote,
   onLinkClick,
   onTagClick,
+  width,
 }: RightPanelProps) {
   const [draggedSection, setDraggedSection] = useState<RightPanelSection | null>(null);
   const [dragOverSection, setDragOverSection] = useState<RightPanelSection | null>(null);
@@ -116,7 +118,7 @@ export function RightPanel({
   };
 
   return (
-    <div className="right-panel">
+    <div className="right-panel" style={width ? { width } : undefined}>
       {sections.map((section) => (
         <div
           key={section}

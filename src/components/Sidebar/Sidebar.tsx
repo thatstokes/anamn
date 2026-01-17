@@ -15,6 +15,7 @@ interface SidebarProps {
   onChangeWorkspace: () => void;
   onImportChess?: (url: string) => Promise<void>;
   isImporting?: boolean;
+  width?: number;
 }
 
 export function Sidebar({
@@ -30,9 +31,10 @@ export function Sidebar({
   onChangeWorkspace,
   onImportChess,
   isImporting,
+  width,
 }: SidebarProps) {
   return (
-    <div className="sidebar">
+    <div className="sidebar" style={width ? { width } : undefined}>
       <div className="sidebar-header">
         <strong>Notes</strong>
       </div>

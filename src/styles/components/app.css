@@ -45,6 +45,29 @@ button:hover {
   overflow: hidden;
 }
 
+/* Resize handles for panels */
+.resize-handle {
+  width: 4px;
+  cursor: col-resize;
+  background: transparent;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.resize-handle:hover,
+.resize-handle:active {
+  background: var(--accent-primary);
+}
+
+.resize-handle::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -4px;
+  right: -4px;
+}
+
 .full-graph-container {
   flex: 1;
   display: flex;
