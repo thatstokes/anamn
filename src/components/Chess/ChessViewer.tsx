@@ -132,6 +132,8 @@ export function ChessViewer({ pgn, defaultFlipped = false }: ChessViewerProps) {
   const [error, setError] = useState<string | null>(null);
   const [analysisEnabled, setAnalysisEnabled] = useState(false);
   const [flipped, setFlipped] = useState(defaultFlipped);
+  const [whitePlayer, setWhitePlayer] = useState<string | undefined>();
+  const [blackPlayer, setBlackPlayer] = useState<string | undefined>();
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Parse PGN on mount
@@ -148,6 +150,12 @@ export function ChessViewer({ pgn, defaultFlipped = false }: ChessViewerProps) {
       if (flipMatch && !defaultFlipped) {
         setFlipped(true);
       }
+
+      // Parse player names from headers
+      const whiteMatch = /\[White\s+"([^"]+)"\]/i.exec(pgn);
+      const blackMatch = /\[Black\s+"([^"]+)"\]/i.exec(pgn);
+      setWhitePlayer(whiteMatch?.[1]);
+      setBlackPlayer(blackMatch?.[1]);
 
       // Check for custom starting FEN
       const fenMatch = /\[FEN\s+"([^"]+)"\]/i.exec(pgn);
@@ -348,6 +356,8 @@ export function ChessViewer({ pgn, defaultFlipped = false }: ChessViewerProps) {
             lastMove={currentLastMove}
             arrows={arrows}
             flipped={flipped}
+            whitePlayer={whitePlayer}
+            blackPlayer={blackPlayer}
           />
           <div className="chess-nav">
         <button

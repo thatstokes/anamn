@@ -1,11 +1,27 @@
 /* Chess Component Styles */
 
 /* Board Container */
+.chess-board-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
 .chess-board-container {
   display: inline-block;
   border: 2px solid var(--border-color);
   border-radius: var(--radius-sm);
   overflow: hidden;
+}
+
+/* Player Names */
+.chess-player-name {
+  font-size: 13px;
+  color: var(--text-secondary);
+  padding: 0.125rem 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .chess-board {

@@ -153,6 +153,8 @@ export function ChessBoard({
   flipped = false,
   lastMove,
   arrows = [],
+  whitePlayer,
+  blackPlayer,
 }: ChessBoardProps) {
   const pieces = parseFEN(position);
   const squareSize = size / 8;
@@ -161,17 +163,27 @@ export function ChessBoard({
   const files = flipped ? [...FILES].reverse() : [...FILES];
   const ranks = flipped ? [...RANKS].reverse() : [...RANKS];
 
+  // Player at top/bottom depends on board orientation
+  const topPlayer = flipped ? whitePlayer : blackPlayer;
+  const bottomPlayer = flipped ? blackPlayer : whitePlayer;
+
   const isLastMoveSquare = (square: string): boolean => {
     if (!lastMove) return false;
     return square === lastMove.from || square === lastMove.to;
   };
 
   return (
-    <div
-      className="chess-board-container"
-      style={{ width: size, height: size, position: 'relative' }}
-    >
-      <div className="chess-board">
+    <div className="chess-board-wrapper">
+      {topPlayer && (
+        <div className="chess-player-name chess-player-top">
+          {topPlayer}
+        </div>
+      )}
+      <div
+        className="chess-board-container"
+        style={{ width: size, height: size, position: 'relative' }}
+      >
+        <div className="chess-board">
         {ranks.map((rank, rankIdx) =>
           files.map((file, fileIdx) => {
             const square = file + rank;
@@ -216,6 +228,12 @@ export function ChessBoard({
         squareSize={squareSize}
         flipped={flipped}
       />
+      </div>
+      {bottomPlayer && (
+        <div className="chess-player-name chess-player-bottom">
+          {bottomPlayer}
+        </div>
+      )}
     </div>
   );
 }

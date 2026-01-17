@@ -29,6 +29,8 @@ export interface ChessBoardProps {
   flipped?: boolean; // View from black's perspective
   lastMove?: LastMove | undefined; // Highlight last move squares
   arrows?: Arrow[]; // Arrows to draw on board (e.g., for best move)
+  whitePlayer?: string | undefined; // White player name
+  blackPlayer?: string | undefined; // Black player name
 }
 
 export interface ChessPositionProps {
