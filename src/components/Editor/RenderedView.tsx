@@ -3,7 +3,7 @@ import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import type { Note } from "../../../shared/types.js";
-import { ChessPosition, ChessViewer, ChessErrorBoundary, LichessEmbed, ChessComEmbed } from "../Chess";
+import { ChessPosition, ChessViewer, ChessErrorBoundary } from "../Chess";
 
 interface RenderedViewProps {
   content: string;
@@ -166,7 +166,7 @@ export function RenderedView({
             if (children && typeof children === 'object' && 'props' in children) {
               const codeChild = children as { props?: { className?: string } };
               if (codeChild.props?.className) {
-                const match = /language-(fen|pgn|lichess|chesscom)/.exec(codeChild.props.className);
+                const match = /language-(fen|pgn)/.exec(codeChild.props.className);
                 if (match) {
                   // Let the code component render the chess component
                   return <>{children}</>;
@@ -177,7 +177,7 @@ export function RenderedView({
           },
           code: ({ children, className, ...props }) => {
             // Check for chess code blocks
-            const match = /language-(fen|pgn|lichess|chesscom)/.exec(className || '');
+            const match = /language-(fen|pgn)/.exec(className || '');
             if (match) {
               const content = String(children).replace(/\n$/, '');
               if (match[1] === 'fen') {
@@ -191,20 +191,6 @@ export function RenderedView({
                 return (
                   <ChessErrorBoundary>
                     <ChessViewer pgn={content} />
-                  </ChessErrorBoundary>
-                );
-              }
-              if (match[1] === 'lichess') {
-                return (
-                  <ChessErrorBoundary>
-                    <LichessEmbed url={content} />
-                  </ChessErrorBoundary>
-                );
-              }
-              if (match[1] === 'chesscom') {
-                return (
-                  <ChessErrorBoundary>
-                    <ChessComEmbed url={content} />
                   </ChessErrorBoundary>
                 );
               }

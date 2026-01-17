@@ -67,12 +67,11 @@ export function ChessMoveList({
   return (
     <div className="chess-moves">
       {movePairs.map((pair) => (
-        <>
-          <div key={`num-${pair.number}`} className="chess-move-number">
+        <div key={pair.number} className="chess-move-row">
+          <div className="chess-move-number">
             {pair.number}.
           </div>
           <div
-            key={`white-${pair.number}`}
             className={`chess-move ${currentIndex === pair.whiteIndex ? 'active' : ''} ${getPrimaryNagClass(pair.white?.nags)}`}
             onClick={() => onMoveClick(pair.whiteIndex)}
           >
@@ -80,14 +79,23 @@ export function ChessMoveList({
             {pair.white && renderNags(pair.white.nags)}
           </div>
           <div
-            key={`black-${pair.number}`}
             className={`chess-move ${pair.black ? (currentIndex === pair.blackIndex ? 'active' : '') : 'empty'} ${getPrimaryNagClass(pair.black?.nags)}`}
             onClick={() => pair.black && onMoveClick(pair.blackIndex)}
           >
             {pair.black ? formatMoveWithSymbols(pair.black.san) : ''}
             {pair.black && renderNags(pair.black.nags)}
           </div>
-        </>
+          {(pair.white?.comment || pair.black?.comment) && (
+            <div className="chess-move-comments">
+              {pair.white?.comment && (
+                <span className="chess-comment white-comment">{pair.white.comment}</span>
+              )}
+              {pair.black?.comment && (
+                <span className="chess-comment black-comment">{pair.black.comment}</span>
+              )}
+            </div>
+          )}
+        </div>
       ))}
     </div>
   );

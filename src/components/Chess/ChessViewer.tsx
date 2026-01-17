@@ -79,6 +79,50 @@ function parseNagsFromPgn(pgn: string): Map<number, NAG[]> {
   return nagMap;
 }
 
+// Parse comments from PGN text (text in curly braces: {comment})
+// Comments appear after moves and are associated with the preceding move
+function parseCommentsFromPgn(pgn: string): Map<number, string> {
+  const commentMap = new Map<number, string>();
+
+  // Get move section (after headers)
+  const moveTextMatch = pgn.match(/\]\s*\n\s*\n([\s\S]+)$/);
+  const moveText = moveTextMatch?.[1] || pgn;
+
+  // Track move index as we scan through the text
+  let moveIndex = -1; // Start at -1, increments on each move found
+
+  // Tokenize: find moves and comments
+  // Move pattern: number + dot(s) + move, or just a move after black's turn
+  // Comment pattern: {text}
+  const tokenRegex = /(\d+\.+\s*[a-zA-Z][a-zA-Z0-9+#=x-]*[!?]*)|([a-zA-Z][a-zA-Z0-9+#=x-]*[!?]*)|(\{[^}]*\})/g;
+
+  let match;
+  let lastWasMove = false;
+
+  while ((match = tokenRegex.exec(moveText)) !== null) {
+    const fullMatch = match[0];
+
+    if (fullMatch.startsWith('{')) {
+      // This is a comment - associate with the last move
+      if (lastWasMove && moveIndex >= 0) {
+        const comment = fullMatch.slice(1, -1).trim(); // Remove braces
+        if (comment) {
+          // Append to existing comment if there is one
+          const existing = commentMap.get(moveIndex);
+          commentMap.set(moveIndex, existing ? `${existing} ${comment}` : comment);
+        }
+      }
+      lastWasMove = false;
+    } else {
+      // This is a move
+      moveIndex++;
+      lastWasMove = true;
+    }
+  }
+
+  return commentMap;
+}
+
 export function ChessViewer({ pgn, defaultFlipped = false }: ChessViewerProps) {
   const { chessConfig } = useUI();
   const [currentIndex, setCurrentIndex] = useState(-1); // -1 = starting position
@@ -95,8 +139,9 @@ export function ChessViewer({ pgn, defaultFlipped = false }: ChessViewerProps) {
     try {
       const chess = new Chess();
 
-      // Parse NAGs from original PGN text before chess.js strips them
+      // Parse NAGs and comments from original PGN text before chess.js strips them
       const nagMap = parseNagsFromPgn(pgn);
+      const commentMap = parseCommentsFromPgn(pgn);
 
       // Check for FlipBoard header
       const flipMatch = /\[FlipBoard\s+"true"\]/i.exec(pgn);
@@ -182,6 +227,7 @@ export function ChessViewer({ pgn, defaultFlipped = false }: ChessViewerProps) {
         lastMoveList.push({ from: move.from, to: move.to });
 
         const nags = nagMap.get(i);
+        const comment = commentMap.get(i);
         parsedMoves.push({
           san: move.san,
           from: move.from,
@@ -191,6 +237,7 @@ export function ChessViewer({ pgn, defaultFlipped = false }: ChessViewerProps) {
           captured: move.captured,
           promotion: move.promotion,
           ...(nags && { nags }),
+          ...(comment && { comment }),
         });
       }
 

@@ -90,6 +90,7 @@ export interface ParsedMove {
   captured?: PieceType | undefined;
   promotion?: PieceType | undefined;
   nags?: NAG[]; // Annotation glyphs for this move
+  comment?: string; // Text annotation after the move
 }
 
 export interface ChessMoveListProps {
