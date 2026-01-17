@@ -1,7 +1,7 @@
 import { app, BrowserWindow, Menu } from "electron";
 import path from "path";
 import { registerWorkspaceHandlers, initWorkspace } from "./ipc/workspace.js";
-import { registerNotesHandlers } from "./ipc/notes.js";
+import { registerNotesHandlers, registerFoldersHandlers } from "./ipc/notes.js";
 import { registerConfigHandlers } from "./ipc/config.js";
 import { registerStateHandlers } from "./ipc/state.js";
 import { registerThemeHandlers } from "./ipc/theme.js";
@@ -21,6 +21,7 @@ function getPreloadPath(): string {
 
 registerWorkspaceHandlers();
 registerNotesHandlers();
+registerFoldersHandlers();
 registerConfigHandlers();
 registerStateHandlers();
 registerThemeHandlers();

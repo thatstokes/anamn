@@ -19,6 +19,9 @@ var api = {
     openDaily: () => import_electron.ipcRenderer.invoke("notes:openDaily"),
     getNotesWithTag: (tag) => import_electron.ipcRenderer.invoke("notes:getNotesWithTag", tag)
   },
+  folders: {
+    create: (name, parentFolder) => import_electron.ipcRenderer.invoke("folders:create", name, parentFolder)
+  },
   config: {
     get: () => import_electron.ipcRenderer.invoke("config:get"),
     set: (updates) => import_electron.ipcRenderer.invoke("config:set", updates)

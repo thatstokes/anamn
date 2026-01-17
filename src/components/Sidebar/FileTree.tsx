@@ -9,6 +9,7 @@ interface FileTreeProps {
   onSelectNote: (note: Note) => void;
   onToggleFolder: (path: string) => void;
   onContextMenu: (e: React.MouseEvent, note: Note) => void;
+  onFolderContextMenu: (e: React.MouseEvent, folderPath: string) => void;
 }
 
 interface TreeNodeItemProps {
@@ -19,6 +20,7 @@ interface TreeNodeItemProps {
   onSelectNote: (note: Note) => void;
   onToggleFolder: (path: string) => void;
   onContextMenu: (e: React.MouseEvent, note: Note) => void;
+  onFolderContextMenu: (e: React.MouseEvent, folderPath: string) => void;
 }
 
 function TreeNodeItem({
@@ -29,6 +31,7 @@ function TreeNodeItem({
   onSelectNote,
   onToggleFolder,
   onContextMenu,
+  onFolderContextMenu,
 }: TreeNodeItemProps) {
   const paddingLeft = depth * 12 + 8;
 
@@ -41,6 +44,7 @@ function TreeNodeItem({
           className="tree-folder"
           style={{ paddingLeft }}
           onClick={() => onToggleFolder(node.path)}
+          onContextMenu={(e) => onFolderContextMenu(e, node.path)}
         >
           <span className="folder-icon">{isExpanded ? "▼" : "▶"}</span>
           <span className="folder-name">{node.name}</span>
@@ -55,6 +59,7 @@ function TreeNodeItem({
             onSelectNote={onSelectNote}
             onToggleFolder={onToggleFolder}
             onContextMenu={onContextMenu}
+            onFolderContextMenu={onFolderContextMenu}
           />
         ))}
       </>
@@ -82,6 +87,7 @@ export function FileTree({
   onSelectNote,
   onToggleFolder,
   onContextMenu,
+  onFolderContextMenu,
 }: FileTreeProps) {
   const tree = useMemo(() => buildTree(notes), [notes]);
 
@@ -97,6 +103,12 @@ export function FileTree({
       className="file-tree"
       tabIndex={0}
       onKeyDown={handleKeyDown}
+      onContextMenu={(e) => {
+        // Right-click on empty space creates folder in root
+        if (e.target === e.currentTarget) {
+          onFolderContextMenu(e, "");
+        }
+      }}
     >
       {tree.map((node) => (
         <TreeNodeItem
@@ -108,6 +120,7 @@ export function FileTree({
           onSelectNote={onSelectNote}
           onToggleFolder={onToggleFolder}
           onContextMenu={onContextMenu}
+          onFolderContextMenu={onFolderContextMenu}
         />
       ))}
     </div>

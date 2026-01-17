@@ -20,6 +20,7 @@ import { Sidebar } from "./components/Sidebar/Sidebar.js";
 import { Editor } from "./components/Editor/Editor.js";
 import { RightPanel } from "./components/RightPanel/RightPanel.js";
 import { ContextMenu } from "./components/ContextMenu.js";
+import { FolderContextMenu } from "./components/FolderContextMenu.js";
 import { CommandPalette } from "./components/CommandPalette.js";
 import { SettingsModal } from "./components/Settings/SettingsModal.js";
 import { VerticalNavBar } from "./components/VerticalNavBar.js";
@@ -105,6 +106,9 @@ function AppContent() {
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameTitle, setRenameTitle] = useState("");
   const [contextMenu, setContextMenu] = useState<{ note: Note; x: number; y: number } | null>(null);
+  const [folderContextMenu, setFolderContextMenu] = useState<{ folderPath: string; x: number; y: number } | null>(null);
+  const [newFolderName, setNewFolderName] = useState<string | null>(null);
+  const [newFolderParent, setNewFolderParent] = useState("");
   const [isImportingChess, setIsImportingChess] = useState(false);
   // UI state that persists across sessions
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
@@ -138,6 +142,7 @@ function AppContent() {
   // Persist panel widths when resize ends
   const sidebarWidthRef = useRef(sidebarWidth);
   const rightPanelWidthRef = useRef(rightPanelWidth);
+  const newNoteFolderRef = useRef<string | null>(null);
   sidebarWidthRef.current = sidebarWidth;
   rightPanelWidthRef.current = rightPanelWidth;
 
@@ -278,6 +283,14 @@ function AppContent() {
     return () => window.removeEventListener("click", handleClick);
   }, [contextMenu]);
 
+  // Close folder context menu on click
+  useEffect(() => {
+    if (!folderContextMenu) return;
+    const handleClick = () => setFolderContextMenu(null);
+    window.addEventListener("click", handleClick);
+    return () => window.removeEventListener("click", handleClick);
+  }, [folderContextMenu]);
+
   // Handlers
   const handleSelectWorkspace = async () => {
     const path = await window.api.workspace.select();
@@ -332,16 +345,18 @@ function AppContent() {
     }
     if (!newNoteTitle.trim()) {
       setNewNoteTitle(null);
+      newNoteFolderRef.current = null;
       return;
     }
     try {
-      // Create note in the same folder as the currently selected note
-      const folder = selectedNote?.folder || "";
+      // Use folder from context menu if set, otherwise use selected note's folder
+      const folder = newNoteFolderRef.current ?? selectedNote?.folder ?? "";
       const note = await window.api.notes.create(newNoteTitle.trim(), folder);
       setNotes((prev) => [...prev, note].sort((a, b) => a.title.localeCompare(b.title)));
       setSelectedNote(note);
       setContent("");
       setNewNoteTitle(null);
+      newNoteFolderRef.current = null;
     } catch (err) {
       console.error("Failed to create note:", err);
       alert(err instanceof Error ? err.message : "Failed to create note");
@@ -502,6 +517,55 @@ function AppContent() {
     }
   };
 
+  const handleFolderContextMenu = (e: React.MouseEvent, folderPath: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setFolderContextMenu({ folderPath, x: e.clientX, y: e.clientY });
+  };
+
+  const handleCreateFolderStart = (parentFolder: string) => {
+    setFolderContextMenu(null);
+    setNewFolderParent(parentFolder);
+    setNewFolderName("");
+  };
+
+  const handleCreateFolder = async () => {
+    if (!newFolderName?.trim()) {
+      setNewFolderName(null);
+      return;
+    }
+
+    try {
+      const createdPath = await window.api.folders.create(newFolderName.trim(), newFolderParent || undefined);
+      // Expand the parent folder and the new folder
+      setExpandedFolders((prev) => {
+        const next = new Set(prev);
+        if (newFolderParent) {
+          next.add(newFolderParent);
+        }
+        next.add(createdPath);
+        return next;
+      });
+      // Refresh notes list to show the new folder
+      const refreshedNotes = await window.api.notes.list();
+      setNotes(refreshedNotes);
+    } catch (err) {
+      console.error("Failed to create folder:", err);
+      alert(err instanceof Error ? err.message : "Failed to create folder");
+    }
+    setNewFolderName(null);
+  };
+
+  const handleCreateNoteInFolder = (folderPath: string) => {
+    setFolderContextMenu(null);
+    // Set the selected note's folder context so new note is created there
+    // We'll use a workaround: temporarily set a fake selected note with the folder
+    setNewNoteTitle("");
+    // Store the folder in a way handleCreateNote can access
+    // Actually, let's update handleCreateNote to use the folder from context menu
+    newNoteFolderRef.current = folderPath;
+  };
+
   const handleLinkClick = async (linkTitle: string) => {
     await saveNote();
     const existingNote = notes.find((n) => n.title === linkTitle);
@@ -650,11 +714,16 @@ function AppContent() {
           selectedNote={selectedNote}
           newNoteTitle={newNoteTitle}
           setNewNoteTitle={setNewNoteTitle}
+          newFolderName={newFolderName}
+          setNewFolderName={setNewFolderName}
+          newFolderParent={newFolderParent}
           expandedFolders={expandedFolders}
           onSelectNote={handleSelectNote}
           onCreateNote={handleCreateNote}
+          onCreateFolder={handleCreateFolder}
           onToggleFolder={handleToggleFolder}
           onContextMenu={handleContextMenu}
+          onFolderContextMenu={handleFolderContextMenu}
           onChangeWorkspace={handleSelectWorkspace}
           onImportChess={handleImportChess}
           isImporting={isImportingChess}
@@ -737,6 +806,15 @@ function AppContent() {
           y={contextMenu.y}
           onRename={handleContextMenuRename}
           onDelete={handleContextMenuDelete}
+        />
+      )}
+      {folderContextMenu && (
+        <FolderContextMenu
+          folderPath={folderContextMenu.folderPath}
+          x={folderContextMenu.x}
+          y={folderContextMenu.y}
+          onNewFolder={() => handleCreateFolderStart(folderContextMenu.folderPath)}
+          onNewNote={() => handleCreateNoteInFolder(folderContextMenu.folderPath)}
         />
       )}
       {showCommandPalette && (

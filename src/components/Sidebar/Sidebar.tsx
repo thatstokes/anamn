@@ -7,11 +7,16 @@ interface SidebarProps {
   selectedNote: Note | null;
   newNoteTitle: string | null;
   setNewNoteTitle: React.Dispatch<React.SetStateAction<string | null>>;
+  newFolderName: string | null;
+  setNewFolderName: React.Dispatch<React.SetStateAction<string | null>>;
+  newFolderParent: string;
   expandedFolders: Set<string>;
   onSelectNote: (note: Note) => void;
   onCreateNote: () => void;
+  onCreateFolder: () => void;
   onToggleFolder: (path: string) => void;
   onContextMenu: (e: React.MouseEvent, note: Note) => void;
+  onFolderContextMenu: (e: React.MouseEvent, folderPath: string) => void;
   onChangeWorkspace: () => void;
   onImportChess?: (url: string) => Promise<void>;
   isImporting?: boolean;
@@ -23,11 +28,16 @@ export function Sidebar({
   selectedNote,
   newNoteTitle,
   setNewNoteTitle,
+  newFolderName,
+  setNewFolderName,
+  newFolderParent,
   expandedFolders,
   onSelectNote,
   onCreateNote,
+  onCreateFolder,
   onToggleFolder,
   onContextMenu,
+  onFolderContextMenu,
   onChangeWorkspace,
   onImportChess,
   isImporting,
@@ -48,6 +58,25 @@ export function Sidebar({
           isImporting={isImporting}
         />
       )}
+      {newFolderName !== null && (
+        <div className="new-note-input">
+          <input
+            type="text"
+            className="new-note-input-field"
+            placeholder={newFolderParent ? `New folder in ${newFolderParent}...` : "New folder..."}
+            value={newFolderName}
+            onChange={(e) => setNewFolderName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                onCreateFolder();
+              } else if (e.key === "Escape") {
+                setNewFolderName(null);
+              }
+            }}
+            autoFocus
+          />
+        </div>
+      )}
       <FileTree
         notes={notes}
         selectedNote={selectedNote}
@@ -55,6 +84,7 @@ export function Sidebar({
         onSelectNote={onSelectNote}
         onToggleFolder={onToggleFolder}
         onContextMenu={onContextMenu}
+        onFolderContextMenu={onFolderContextMenu}
       />
       <button onClick={onChangeWorkspace} className="change-folder">
         Change Folder

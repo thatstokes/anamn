@@ -306,3 +306,36 @@ export function registerNotesHandlers() {
     }
   );
 }
+
+export function registerFoldersHandlers() {
+  ipcMain.handle(
+    "folders:create",
+    async (_, name: string, parentFolder?: string): Promise<string> => {
+      const workspace = getWorkspacePath();
+      if (!workspace) throw new Error("No workspace selected");
+
+      // Build the full path
+      const relativePath = parentFolder ? path.join(parentFolder, name) : name;
+      const fullPath = path.join(workspace, relativePath);
+
+      // Security: ensure path is within workspace
+      const resolved = path.resolve(fullPath);
+      if (!resolved.startsWith(workspace)) {
+        throw new Error("Path outside workspace");
+      }
+
+      // Check if folder already exists
+      try {
+        await fs.access(fullPath);
+        throw new Error("Folder already exists");
+      } catch (err) {
+        if ((err as NodeJS.ErrnoException).code !== "ENOENT") throw err;
+      }
+
+      // Create the folder
+      await fs.mkdir(fullPath, { recursive: true });
+
+      return relativePath;
+    }
+  );
+}

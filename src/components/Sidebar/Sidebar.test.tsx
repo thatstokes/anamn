@@ -13,11 +13,16 @@ describe("Sidebar", () => {
     selectedNote: null,
     newNoteTitle: null,
     setNewNoteTitle: vi.fn(),
+    newFolderName: null,
+    setNewFolderName: vi.fn(),
+    newFolderParent: "",
     expandedFolders: new Set<string>(),
     onSelectNote: vi.fn(),
     onCreateNote: vi.fn(),
+    onCreateFolder: vi.fn(),
     onToggleFolder: vi.fn(),
     onContextMenu: vi.fn(),
+    onFolderContextMenu: vi.fn(),
     onChangeWorkspace: vi.fn(),
   };
 

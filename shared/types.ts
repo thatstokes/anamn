@@ -120,6 +120,10 @@ export interface NotesApi {
   getNotesWithTag: (tag: string) => Promise<Note[]>;
 }
 
+export interface FoldersApi {
+  create: (name: string, parentFolder?: string) => Promise<string>; // Returns the created folder path
+}
+
 export interface FileChangeEvent {
   path: string;
   title: string;
@@ -160,6 +164,7 @@ export interface ChessImportApi {
 export interface Api {
   workspace: WorkspaceApi;
   notes: NotesApi;
+  folders: FoldersApi;
   config: ConfigApi;
   state: StateApi;
   watcher: WatcherApi;

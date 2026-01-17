@@ -20,6 +20,10 @@ const api: Api = {
     openDaily: () => ipcRenderer.invoke("notes:openDaily"),
     getNotesWithTag: (tag: string) => ipcRenderer.invoke("notes:getNotesWithTag", tag),
   },
+  folders: {
+    create: (name: string, parentFolder?: string) =>
+      ipcRenderer.invoke("folders:create", name, parentFolder),
+  },
   config: {
     get: () => ipcRenderer.invoke("config:get"),
     set: (updates) => ipcRenderer.invoke("config:set", updates),
