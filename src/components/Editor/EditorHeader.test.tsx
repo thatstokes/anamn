@@ -3,7 +3,7 @@ import { EditorHeader } from "./EditorHeader.js";
 import type { Note } from "../../../shared/types.js";
 
 describe("EditorHeader", () => {
-  const mockNote: Note = { path: "/notes/test.md", title: "Test Note" };
+  const mockNote: Note = { path: "/notes/test.md", title: "Test Note", folder: "" };
 
   const defaultProps = {
     selectedNote: mockNote,

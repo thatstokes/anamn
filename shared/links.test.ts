@@ -6,7 +6,7 @@ describe("parseLinks", () => {
     const links = parseLinks(content);
 
     expect(links).toEqual([
-      { title: "My Note", start: 10, end: 21 },
+      { title: "My Note", fullLink: "My Note", folder: undefined, start: 10, end: 21 },
     ]);
   });
 
@@ -15,8 +15,8 @@ describe("parseLinks", () => {
     const links = parseLinks(content);
 
     expect(links).toEqual([
-      { title: "Note A", start: 4, end: 14 },
-      { title: "Note B", start: 19, end: 29 },
+      { title: "Note A", fullLink: "Note A", folder: undefined, start: 4, end: 14 },
+      { title: "Note B", fullLink: "Note B", folder: undefined, start: 19, end: 29 },
     ]);
   });
 
@@ -32,7 +32,7 @@ describe("parseLinks", () => {
     const links = parseLinks(content);
 
     expect(links).toEqual([
-      { title: "Spaced Title", start: 0, end: 20 },
+      { title: "Spaced Title", fullLink: "Spaced Title", folder: undefined, start: 0, end: 20 },
     ]);
   });
 
@@ -51,8 +51,8 @@ Line 2 with [[Second Link]]`;
     const links = parseLinks(content);
 
     expect(links).toEqual([
-      { title: "Link A", start: 0, end: 10 },
-      { title: "Link B", start: 10, end: 20 },
+      { title: "Link A", fullLink: "Link A", folder: undefined, start: 0, end: 10 },
+      { title: "Link B", fullLink: "Link B", folder: undefined, start: 10, end: 20 },
     ]);
   });
 

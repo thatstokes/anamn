@@ -9,23 +9,35 @@ import { getUniqueTags } from "../../shared/tags.js";
 import { loadConfig } from "../config.js";
 import type { Note, SearchResult } from "../../shared/types.js";
 
+// Recursively list all notes in a directory and its subdirectories
+async function listNotesRecursive(dir: string, workspace: string): Promise<Note[]> {
+  const entries = await fs.readdir(dir, { withFileTypes: true });
+  const notes: Note[] = [];
+
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory() && !entry.name.startsWith(".")) {
+      // Recurse into subdirectories (skip hidden folders)
+      notes.push(...await listNotesRecursive(fullPath, workspace));
+    } else if (entry.isFile() && entry.name.endsWith(".md")) {
+      const relativePath = path.relative(workspace, dir);
+      notes.push({
+        path: fullPath,
+        title: entry.name.replace(/\.md$/, ""),
+        folder: relativePath || "",
+      });
+    }
+  }
+
+  return notes;
+}
+
 export function registerNotesHandlers() {
   ipcMain.handle("notes:list", async (): Promise<Note[]> => {
     const workspace = getWorkspacePath();
     if (!workspace) return [];
 
-    const entries = await fs.readdir(workspace, { withFileTypes: true });
-    const notes: Note[] = [];
-
-    for (const entry of entries) {
-      if (entry.isFile() && entry.name.endsWith(".md")) {
-        notes.push({
-          path: path.join(workspace, entry.name),
-          title: entry.name.replace(/\.md$/, ""),
-        });
-      }
-    }
-
+    const notes = await listNotesRecursive(workspace, workspace);
     return notes.sort((a, b) => a.title.localeCompare(b.title));
   });
 
@@ -61,12 +73,24 @@ export function registerNotesHandlers() {
     }
   );
 
-  ipcMain.handle("notes:create", async (_, title: string): Promise<Note> => {
+  ipcMain.handle("notes:create", async (_, title: string, folder?: string): Promise<Note> => {
     const workspace = getWorkspacePath();
     if (!workspace) throw new Error("No workspace selected");
 
+    // Determine target directory
+    const targetDir = folder ? path.join(workspace, folder) : workspace;
+
+    // Security: ensure path is within workspace
+    const resolvedDir = path.resolve(targetDir);
+    if (!resolvedDir.startsWith(workspace)) {
+      throw new Error("Path outside workspace");
+    }
+
+    // Ensure directory exists
+    await fs.mkdir(resolvedDir, { recursive: true });
+
     const filename = `${title}.md`;
-    const notePath = path.join(workspace, filename);
+    const notePath = path.join(resolvedDir, filename);
 
     // Check if file already exists
     try {
@@ -82,7 +106,7 @@ export function registerNotesHandlers() {
     await fs.rename(tempPath, notePath);
     markFileWritten(notePath);
 
-    return { path: notePath, title };
+    return { path: notePath, title, folder: folder || "" };
   });
 
   ipcMain.handle("notes:delete", async (_, notePath: string): Promise<void> => {
@@ -110,7 +134,9 @@ export function registerNotesHandlers() {
       }
 
       const oldTitle = path.basename(resolved, ".md");
-      const newPath = path.join(workspace, `${newTitle}.md`);
+      const noteDir = path.dirname(resolved);
+      const newPath = path.join(noteDir, `${newTitle}.md`);
+      const folder = path.relative(workspace, noteDir) || "";
 
       // Check if new name already exists
       try {
@@ -125,27 +151,24 @@ export function registerNotesHandlers() {
       markFileWritten(newPath);
       await fs.rename(resolved, newPath);
 
-      // Update all notes that link to the old title
-      const entries = await fs.readdir(workspace, { withFileTypes: true });
-      for (const entry of entries) {
-        if (entry.isFile() && entry.name.endsWith(".md")) {
-          const filePath = path.join(workspace, entry.name);
-          const content = await fs.readFile(filePath, "utf-8");
+      // Update all notes that link to the old title (recursively scan all notes)
+      const allNotes = await listNotesRecursive(workspace, workspace);
+      for (const note of allNotes) {
+        const content = await fs.readFile(note.path, "utf-8");
 
-          // Replace [[oldTitle]] with [[newTitle]]
-          const oldLink = `[[${oldTitle}]]`;
-          const newLink = `[[${newTitle}]]`;
-          if (content.includes(oldLink)) {
-            const updatedContent = content.split(oldLink).join(newLink);
-            const tempPath = `${filePath}.${Date.now()}.tmp`;
-            await fs.writeFile(tempPath, updatedContent, "utf-8");
-            await fs.rename(tempPath, filePath);
-            markFileWritten(filePath);
-          }
+        // Replace [[oldTitle]] with [[newTitle]]
+        const oldLink = `[[${oldTitle}]]`;
+        const newLink = `[[${newTitle}]]`;
+        if (content.includes(oldLink)) {
+          const updatedContent = content.split(oldLink).join(newLink);
+          const tempPath = `${note.path}.${Date.now()}.tmp`;
+          await fs.writeFile(tempPath, updatedContent, "utf-8");
+          await fs.rename(tempPath, note.path);
+          markFileWritten(note.path);
         }
       }
 
-      return { path: newPath, title: newTitle };
+      return { path: newPath, title: newTitle, folder };
     }
   );
 
@@ -155,23 +178,18 @@ export function registerNotesHandlers() {
       const workspace = getWorkspacePath();
       if (!workspace) return [];
 
-      const entries = await fs.readdir(workspace, { withFileTypes: true });
+      const allNotes = await listNotesRecursive(workspace, workspace);
       const backlinks: Note[] = [];
 
-      for (const entry of entries) {
-        if (entry.isFile() && entry.name.endsWith(".md")) {
-          const notePath = path.join(workspace, entry.name);
-          const title = entry.name.replace(/\.md$/, "");
+      for (const note of allNotes) {
+        // Skip the target note itself
+        if (note.title === targetTitle) continue;
 
-          // Skip the target note itself
-          if (title === targetTitle) continue;
+        const content = await fs.readFile(note.path, "utf-8");
+        const links = getUniqueLinks(content);
 
-          const content = await fs.readFile(notePath, "utf-8");
-          const links = getUniqueLinks(content);
-
-          if (links.includes(targetTitle)) {
-            backlinks.push({ path: notePath, title });
-          }
+        if (links.includes(targetTitle)) {
+          backlinks.push(note);
         }
       }
 
@@ -186,40 +204,36 @@ export function registerNotesHandlers() {
       if (!workspace || !query.trim()) return [];
 
       const searchTerm = query.toLowerCase();
-      const entries = await fs.readdir(workspace, { withFileTypes: true });
+      const allNotes = await listNotesRecursive(workspace, workspace);
       const results: SearchResult[] = [];
 
-      for (const entry of entries) {
-        if (entry.isFile() && entry.name.endsWith(".md")) {
-          const notePath = path.join(workspace, entry.name);
-          const title = entry.name.replace(/\.md$/, "");
-          const content = await fs.readFile(notePath, "utf-8");
+      for (const note of allNotes) {
+        const content = await fs.readFile(note.path, "utf-8");
 
-          const titleMatch = title.toLowerCase().includes(searchTerm);
-          const contentMatch = content.toLowerCase().includes(searchTerm);
+        const titleMatch = note.title.toLowerCase().includes(searchTerm);
+        const contentMatch = content.toLowerCase().includes(searchTerm);
 
-          if (titleMatch || contentMatch) {
-            let snippet: string | undefined;
-            if (contentMatch && !titleMatch) {
-              // Extract snippet around the match
-              const lowerContent = content.toLowerCase();
-              const matchIndex = lowerContent.indexOf(searchTerm);
-              const start = Math.max(0, matchIndex - 40);
-              const end = Math.min(content.length, matchIndex + searchTerm.length + 40);
-              snippet = (start > 0 ? "..." : "") +
-                        content.slice(start, end).replace(/\n/g, " ") +
-                        (end < content.length ? "..." : "");
-            }
-
-            const result: SearchResult = {
-              note: { path: notePath, title },
-              matchType: titleMatch ? "title" : "content",
-            };
-            if (snippet) {
-              result.snippet = snippet;
-            }
-            results.push(result);
+        if (titleMatch || contentMatch) {
+          let snippet: string | undefined;
+          if (contentMatch && !titleMatch) {
+            // Extract snippet around the match
+            const lowerContent = content.toLowerCase();
+            const matchIndex = lowerContent.indexOf(searchTerm);
+            const start = Math.max(0, matchIndex - 40);
+            const end = Math.min(content.length, matchIndex + searchTerm.length + 40);
+            snippet = (start > 0 ? "..." : "") +
+                      content.slice(start, end).replace(/\n/g, " ") +
+                      (end < content.length ? "..." : "");
           }
+
+          const result: SearchResult = {
+            note,
+            matchType: titleMatch ? "title" : "content",
+          };
+          if (snippet) {
+            result.snippet = snippet;
+          }
+          results.push(result);
         }
       }
 
@@ -256,7 +270,7 @@ export function registerNotesHandlers() {
     try {
       await fs.access(notePath);
       // File exists, return it
-      return { path: notePath, title };
+      return { path: notePath, title, folder: "" };
     } catch (err) {
       if ((err as NodeJS.ErrnoException).code !== "ENOENT") throw err;
     }
@@ -267,7 +281,7 @@ export function registerNotesHandlers() {
     await fs.rename(tempPath, notePath);
     markFileWritten(notePath);
 
-    return { path: notePath, title };
+    return { path: notePath, title, folder: "" };
   });
 
   ipcMain.handle(
@@ -276,19 +290,15 @@ export function registerNotesHandlers() {
       const workspace = getWorkspacePath();
       if (!workspace || !tag.trim()) return [];
 
-      const entries = await fs.readdir(workspace, { withFileTypes: true });
+      const allNotes = await listNotesRecursive(workspace, workspace);
       const matchingNotes: Note[] = [];
 
-      for (const entry of entries) {
-        if (entry.isFile() && entry.name.endsWith(".md")) {
-          const notePath = path.join(workspace, entry.name);
-          const title = entry.name.replace(/\.md$/, "");
-          const content = await fs.readFile(notePath, "utf-8");
+      for (const note of allNotes) {
+        const content = await fs.readFile(note.path, "utf-8");
 
-          const tags = getUniqueTags(content);
-          if (tags.includes(tag)) {
-            matchingNotes.push({ path: notePath, title });
-          }
+        const tags = getUniqueTags(content);
+        if (tags.includes(tag)) {
+          matchingNotes.push(note);
         }
       }
 

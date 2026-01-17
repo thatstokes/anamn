@@ -1,6 +1,7 @@
 export interface Note {
   path: string;
   title: string;
+  folder: string;  // Relative folder path from workspace root, empty string for root
 }
 
 export interface SearchResult {
@@ -107,7 +108,7 @@ export interface NotesApi {
   list: () => Promise<Note[]>;
   read: (path: string) => Promise<string>;
   write: (path: string, content: string) => Promise<void>;
-  create: (title: string) => Promise<Note>;
+  create: (title: string, folder?: string) => Promise<Note>;
   delete: (path: string) => Promise<void>;
   rename: (path: string, newTitle: string) => Promise<Note>;
   getBacklinks: (title: string) => Promise<Note[]>;
@@ -119,6 +120,7 @@ export interface NotesApi {
 export interface FileChangeEvent {
   path: string;
   title: string;
+  folder: string;
 }
 
 export interface WatcherApi {

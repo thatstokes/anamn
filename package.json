@@ -7,7 +7,7 @@
   "author": "Anamn",
   "license": "UNLICENSED",
   "scripts": {
-    "dev": "npm run build:preload && concurrently \"vite\" \"NODE_OPTIONS='--import tsx' electron .\"",
+    "dev": "npm run build:electron && concurrently \"vite\" \"electron .\"",
     "build": "vite build",
     "build:preload": "esbuild electron/preload.ts --bundle --platform=node --outfile=electron/preload.js --external:electron",
     "build:main": "esbuild electron/main.ts --bundle --platform=node --outdir=electron-dist --external:electron --format=cjs",

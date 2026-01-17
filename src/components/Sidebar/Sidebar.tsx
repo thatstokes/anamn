@@ -1,14 +1,16 @@
 import type { Note } from "../../../shared/types.js";
 import { NewNoteInput } from "./NewNoteInput.js";
-import { NoteList } from "./NoteList.js";
+import { FileTree } from "./FileTree.js";
 
 interface SidebarProps {
   notes: Note[];
   selectedNote: Note | null;
   newNoteTitle: string | null;
   setNewNoteTitle: React.Dispatch<React.SetStateAction<string | null>>;
+  expandedFolders: Set<string>;
   onSelectNote: (note: Note) => void;
   onCreateNote: () => void;
+  onToggleFolder: (path: string) => void;
   onContextMenu: (e: React.MouseEvent, note: Note) => void;
   onChangeWorkspace: () => void;
   onImportChess?: (url: string) => Promise<void>;
@@ -20,8 +22,10 @@ export function Sidebar({
   selectedNote,
   newNoteTitle,
   setNewNoteTitle,
+  expandedFolders,
   onSelectNote,
   onCreateNote,
+  onToggleFolder,
   onContextMenu,
   onChangeWorkspace,
   onImportChess,
@@ -42,10 +46,12 @@ export function Sidebar({
           isImporting={isImporting}
         />
       )}
-      <NoteList
+      <FileTree
         notes={notes}
         selectedNote={selectedNote}
+        expandedFolders={expandedFolders}
         onSelectNote={onSelectNote}
+        onToggleFolder={onToggleFolder}
         onContextMenu={onContextMenu}
       />
       <button onClick={onChangeWorkspace} className="change-folder">

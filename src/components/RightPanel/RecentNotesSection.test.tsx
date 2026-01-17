@@ -4,9 +4,9 @@ import type { Note } from "../../../shared/types.js";
 
 describe("RecentNotesSection", () => {
   const mockNotes: Note[] = [
-    { path: "/notes/note1.md", title: "Note 1" },
-    { path: "/notes/note2.md", title: "Note 2" },
-    { path: "/notes/note3.md", title: "Note 3" },
+    { path: "/notes/note1.md", title: "Note 1", folder: "" },
+    { path: "/notes/note2.md", title: "Note 2", folder: "" },
+    { path: "/notes/note3.md", title: "Note 3", folder: "" },
   ];
 
   const defaultProps = {

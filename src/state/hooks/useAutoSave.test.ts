@@ -20,7 +20,7 @@ describe("useAutoSave", () => {
   });
 
   it("should not save when content matches lastSavedContent", async () => {
-    const note = { path: "/test/note.md", title: "note" };
+    const note = { path: "/test/note.md", title: "note", folder: "" };
 
     const { result } = renderHook(() =>
       useAutoSave({ note, content: "same content" })
@@ -36,7 +36,7 @@ describe("useAutoSave", () => {
   });
 
   it("should save via saveNote when content differs from lastSaved", async () => {
-    const note = { path: "/test/note.md", title: "note" };
+    const note = { path: "/test/note.md", title: "note", folder: "" };
 
     const { result } = renderHook(() =>
       useAutoSave({ note, content: "new content" })
@@ -52,7 +52,7 @@ describe("useAutoSave", () => {
   });
 
   it("should update lastSavedContentRef after save", async () => {
-    const note = { path: "/test/note.md", title: "note" };
+    const note = { path: "/test/note.md", title: "note", folder: "" };
 
     const { result } = renderHook(() =>
       useAutoSave({ note, content: "updated content" })

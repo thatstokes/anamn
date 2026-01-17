@@ -27,7 +27,7 @@ export function useFileWatcher({
     const unsubAdd = window.api.watcher.onFileAdded((event) => {
       setNotes((prev) => {
         if (prev.some((n) => n.path === event.path)) return prev;
-        return [...prev, { path: event.path, title: event.title }].sort((a, b) =>
+        return [...prev, { path: event.path, title: event.title, folder: event.folder }].sort((a, b) =>
           a.title.localeCompare(b.title)
         );
       });

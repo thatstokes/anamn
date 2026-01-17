@@ -106,6 +106,28 @@ function AppContent() {
   const [renameTitle, setRenameTitle] = useState("");
   const [contextMenu, setContextMenu] = useState<{ note: Note; x: number; y: number } | null>(null);
   const [isImportingChess, setIsImportingChess] = useState(false);
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(() => {
+    // Load from localStorage
+    const stored = localStorage.getItem("anamn-expanded-folders");
+    return stored ? new Set(JSON.parse(stored)) : new Set();
+  });
+
+  // Persist expanded folders
+  useEffect(() => {
+    localStorage.setItem("anamn-expanded-folders", JSON.stringify([...expandedFolders]));
+  }, [expandedFolders]);
+
+  const handleToggleFolder = (path: string) => {
+    setExpandedFolders((prev) => {
+      const next = new Set(prev);
+      if (next.has(path)) {
+        next.delete(path);
+      } else {
+        next.add(path);
+      }
+      return next;
+    });
+  };
 
   // Find in note hook
   const {
@@ -228,7 +250,9 @@ function AppContent() {
       return;
     }
     try {
-      const note = await window.api.notes.create(newNoteTitle.trim());
+      // Create note in the same folder as the currently selected note
+      const folder = selectedNote?.folder || "";
+      const note = await window.api.notes.create(newNoteTitle.trim(), folder);
       setNotes((prev) => [...prev, note].sort((a, b) => a.title.localeCompare(b.title)));
       setSelectedNote(note);
       setContent("");
@@ -541,8 +565,10 @@ function AppContent() {
           selectedNote={selectedNote}
           newNoteTitle={newNoteTitle}
           setNewNoteTitle={setNewNoteTitle}
+          expandedFolders={expandedFolders}
           onSelectNote={handleSelectNote}
           onCreateNote={handleCreateNote}
+          onToggleFolder={handleToggleFolder}
           onContextMenu={handleContextMenu}
           onChangeWorkspace={handleSelectWorkspace}
           onImportChess={handleImportChess}

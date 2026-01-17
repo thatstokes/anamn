@@ -4,8 +4,8 @@ import type { Note } from "../../../shared/types.js";
 
 describe("Sidebar", () => {
   const mockNotes: Note[] = [
-    { path: "/notes/note1.md", title: "Note 1" },
-    { path: "/notes/note2.md", title: "Note 2" },
+    { path: "/notes/note1.md", title: "Note 1", folder: "" },
+    { path: "/notes/note2.md", title: "Note 2", folder: "" },
   ];
 
   const defaultProps = {
@@ -13,8 +13,10 @@ describe("Sidebar", () => {
     selectedNote: null,
     newNoteTitle: null,
     setNewNoteTitle: vi.fn(),
+    expandedFolders: new Set<string>(),
     onSelectNote: vi.fn(),
     onCreateNote: vi.fn(),
+    onToggleFolder: vi.fn(),
     onContextMenu: vi.fn(),
     onChangeWorkspace: vi.fn(),
   };
@@ -39,19 +41,19 @@ describe("Sidebar", () => {
   it("should show new note input when newNoteTitle is not null", () => {
     render(<Sidebar {...defaultProps} newNoteTitle="" />);
 
-    expect(screen.getByPlaceholderText("Note title...")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Note title or chess URL...")).toBeInTheDocument();
   });
 
   it("should hide new note input when newNoteTitle is null", () => {
     render(<Sidebar {...defaultProps} newNoteTitle={null} />);
 
-    expect(screen.queryByPlaceholderText("Note title...")).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText("Note title or chess URL...")).not.toBeInTheDocument();
   });
 
   it("should call setNewNoteTitle when typing in new note input", () => {
     render(<Sidebar {...defaultProps} newNoteTitle="" />);
 
-    const input = screen.getByPlaceholderText("Note title...");
+    const input = screen.getByPlaceholderText("Note title or chess URL...");
     fireEvent.change(input, { target: { value: "My Note" } });
 
     expect(defaultProps.setNewNoteTitle).toHaveBeenCalledWith("My Note");
@@ -60,7 +62,7 @@ describe("Sidebar", () => {
   it("should call setNewNoteTitle with null when pressing Escape in new note input", () => {
     render(<Sidebar {...defaultProps} newNoteTitle="" />);
 
-    const input = screen.getByPlaceholderText("Note title...");
+    const input = screen.getByPlaceholderText("Note title or chess URL...");
     fireEvent.keyDown(input, { key: "Escape" });
 
     expect(defaultProps.setNewNoteTitle).toHaveBeenCalledWith(null);

@@ -11,7 +11,7 @@ const api: Api = {
     read: (path: string) => ipcRenderer.invoke("notes:read", path),
     write: (path: string, content: string) =>
       ipcRenderer.invoke("notes:write", path, content),
-    create: (title: string) => ipcRenderer.invoke("notes:create", title),
+    create: (title: string, folder?: string) => ipcRenderer.invoke("notes:create", title, folder),
     delete: (path: string) => ipcRenderer.invoke("notes:delete", path),
     rename: (path: string, newTitle: string) =>
       ipcRenderer.invoke("notes:rename", path, newTitle),

@@ -7,6 +7,7 @@ describe("TagsSection", () => {
   const mockNote: Note = {
     path: "/path/to/note.md",
     title: "Test Note",
+    folder: "",
   };
 
   it("shows empty message when no note is selected", () => {

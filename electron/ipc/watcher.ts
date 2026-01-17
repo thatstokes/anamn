@@ -3,6 +3,7 @@ import chokidar, { FSWatcher } from "chokidar";
 import path from "path";
 
 let watcher: FSWatcher | null = null;
+let currentWorkspace: string | null = null;
 
 // Track recent writes to ignore our own changes
 const recentWrites = new Map<string, number>();
@@ -43,21 +44,32 @@ function sendToRenderer(channel: string, data: unknown): void {
 }
 
 /**
+ * Get folder path relative to workspace
+ */
+function getRelativeFolder(filePath: string): string {
+  if (!currentWorkspace) return "";
+  const dir = path.dirname(filePath);
+  return path.relative(currentWorkspace, dir) || "";
+}
+
+/**
  * Start watching a workspace directory for .md file changes
  */
 export function startWatcher(workspacePath: string): void {
   // Stop any existing watcher
   stopWatcher();
 
+  currentWorkspace = workspacePath;
+
   watcher = chokidar.watch(workspacePath, {
     ignoreInitial: true, // Don't emit events for existing files
-    depth: 0, // Only watch the directory itself, not subdirectories
+    // No depth limit - watch all subdirectories
     awaitWriteFinish: {
       stabilityThreshold: 100,
       pollInterval: 50,
     },
-    // Ignore temp files from atomic writes
-    ignored: /\.tmp$/,
+    // Ignore temp files from atomic writes and hidden folders
+    ignored: [/\.tmp$/, /(^|[\/\\])\../],
     // Use polling for better cross-platform compatibility
     usePolling: true,
     interval: 300,
@@ -68,7 +80,8 @@ export function startWatcher(workspacePath: string): void {
     if (shouldIgnoreChange(filePath)) return;
 
     const title = path.basename(filePath, ".md");
-    sendToRenderer("watcher:file-added", { path: filePath, title });
+    const folder = getRelativeFolder(filePath);
+    sendToRenderer("watcher:file-added", { path: filePath, title, folder });
   });
 
   watcher.on("change", (filePath) => {
@@ -76,7 +89,8 @@ export function startWatcher(workspacePath: string): void {
     if (shouldIgnoreChange(filePath)) return;
 
     const title = path.basename(filePath, ".md");
-    sendToRenderer("watcher:file-changed", { path: filePath, title });
+    const folder = getRelativeFolder(filePath);
+    sendToRenderer("watcher:file-changed", { path: filePath, title, folder });
   });
 
   watcher.on("unlink", (filePath) => {
@@ -84,7 +98,8 @@ export function startWatcher(workspacePath: string): void {
     if (shouldIgnoreChange(filePath)) return;
 
     const title = path.basename(filePath, ".md");
-    sendToRenderer("watcher:file-deleted", { path: filePath, title });
+    const folder = getRelativeFolder(filePath);
+    sendToRenderer("watcher:file-deleted", { path: filePath, title, folder });
   });
 
   watcher.on("error", (error) => {
@@ -100,5 +115,6 @@ export function stopWatcher(): void {
     watcher.close();
     watcher = null;
   }
+  currentWorkspace = null;
   recentWrites.clear();
 }

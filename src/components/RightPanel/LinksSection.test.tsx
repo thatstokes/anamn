@@ -3,10 +3,10 @@ import { LinksSection } from "./LinksSection.js";
 import type { Note } from "../../../shared/types.js";
 
 describe("LinksSection", () => {
-  const mockNote: Note = { path: "/notes/test.md", title: "Test Note" };
+  const mockNote: Note = { path: "/notes/test.md", title: "Test Note", folder: "" };
   const mockNotes: Note[] = [
     mockNote,
-    { path: "/notes/other.md", title: "Other Note" },
+    { path: "/notes/other.md", title: "Other Note", folder: "" },
   ];
 
   const defaultProps = {
@@ -64,8 +64,8 @@ describe("LinksSection", () => {
 
   it("should display backlinks", () => {
     const backlinks: Note[] = [
-      { path: "/notes/back1.md", title: "Backlink 1" },
-      { path: "/notes/back2.md", title: "Backlink 2" },
+      { path: "/notes/back1.md", title: "Backlink 1", folder: "" },
+      { path: "/notes/back2.md", title: "Backlink 2", folder: "" },
     ];
     render(<LinksSection {...defaultProps} backlinks={backlinks} />);
 
@@ -75,7 +75,7 @@ describe("LinksSection", () => {
   });
 
   it("should call onSelectNote when clicking a backlink", () => {
-    const backlinks: Note[] = [{ path: "/notes/back.md", title: "Backlink" }];
+    const backlinks: Note[] = [{ path: "/notes/back.md", title: "Backlink", folder: "" }];
     render(<LinksSection {...defaultProps} backlinks={backlinks} />);
 
     fireEvent.click(screen.getByText("Backlink"));
@@ -84,7 +84,7 @@ describe("LinksSection", () => {
   });
 
   it("should display both outgoing links and backlinks when present", () => {
-    const backlinks: Note[] = [{ path: "/notes/back.md", title: "Backlink" }];
+    const backlinks: Note[] = [{ path: "/notes/back.md", title: "Backlink", folder: "" }];
     render(<LinksSection {...defaultProps} outgoingLinks={["Other Note"]} backlinks={backlinks} />);
 
     expect(screen.getByText("Outbound (1)")).toBeInTheDocument();
