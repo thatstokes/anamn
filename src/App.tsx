@@ -301,6 +301,23 @@ function AppContent() {
     window.api.state.set({ lastOpenedNote: note.path });
     const inboundLinks = await window.api.notes.getBacklinks(note.title);
     setBacklinks(inboundLinks);
+    // Expand all parent folders to reveal this note in the tree
+    if (note.folder) {
+      const parts = note.folder.split("/");
+      const foldersToExpand: string[] = [];
+      let currentPath = "";
+      for (const part of parts) {
+        currentPath = currentPath ? `${currentPath}/${part}` : part;
+        foldersToExpand.push(currentPath);
+      }
+      setExpandedFolders((prev) => {
+        const next = new Set(prev);
+        for (const folder of foldersToExpand) {
+          next.add(folder);
+        }
+        return next;
+      });
+    }
     // Scroll to top of the note
     setTimeout(() => {
       renderedViewRef.current?.scrollTo(0, 0);
