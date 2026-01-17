@@ -147,14 +147,41 @@ function parseFEN(fen: string): Map<string, ChessPiece> {
   return pieces;
 }
 
+// Format time control for display (e.g., "600+5" -> "10+5")
+function formatTimeControl(tc: string): string {
+  // Handle common formats: "600" (seconds), "600+5" (base+increment), "1/300" (moves/seconds)
+  const baseIncrement = tc.match(/^(\d+)\+(\d+)$/);
+  if (baseIncrement && baseIncrement[1] && baseIncrement[2]) {
+    const minutes = Math.floor(parseInt(baseIncrement[1], 10) / 60);
+    return `${minutes}+${baseIncrement[2]}`;
+  }
+  const secondsOnly = tc.match(/^(\d+)$/);
+  if (secondsOnly && secondsOnly[1]) {
+    const minutes = Math.floor(parseInt(secondsOnly[1], 10) / 60);
+    return `${minutes} min`;
+  }
+  return tc; // Return as-is if unknown format
+}
+
+// Format date for display (e.g., "2024.01.15" -> "Jan 15, 2024")
+function formatDate(dateStr: string): string {
+  // PGN dates are typically YYYY.MM.DD
+  const parts = dateStr.split('.');
+  if (parts.length !== 3) return dateStr;
+  const [year, month, day] = parts;
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const monthIdx = parseInt(month || '0', 10) - 1;
+  if (monthIdx < 0 || monthIdx > 11) return dateStr;
+  return `${monthNames[monthIdx]} ${parseInt(day || '0', 10)}, ${year}`;
+}
+
 export function ChessBoard({
   position,
   size = 400,
   flipped = false,
   lastMove,
   arrows = [],
-  whitePlayer,
-  blackPlayer,
+  metadata,
 }: ChessBoardProps) {
   const pieces = parseFEN(position);
   const squareSize = size / 8;
@@ -164,8 +191,14 @@ export function ChessBoard({
   const ranks = flipped ? [...RANKS].reverse() : [...RANKS];
 
   // Player at top/bottom depends on board orientation
-  const topPlayer = flipped ? whitePlayer : blackPlayer;
-  const bottomPlayer = flipped ? blackPlayer : whitePlayer;
+  const topPlayer = flipped ? metadata?.whitePlayer : metadata?.blackPlayer;
+  const bottomPlayer = flipped ? metadata?.blackPlayer : metadata?.whitePlayer;
+
+  // Extract metadata values
+  const gameDate = metadata?.date;
+  const gameResult = metadata?.result;
+  const gameTimeControl = metadata?.timeControl;
+  const hasHeaderInfo = gameDate || gameResult || gameTimeControl;
 
   const isLastMoveSquare = (square: string): boolean => {
     if (!lastMove) return false;
@@ -174,6 +207,19 @@ export function ChessBoard({
 
   return (
     <div className="chess-board-wrapper">
+      {hasHeaderInfo && (
+        <div className="chess-game-info">
+          {gameDate && (
+            <span className="chess-game-date">{formatDate(gameDate)}</span>
+          )}
+          {gameTimeControl && (
+            <span className="chess-game-time">{formatTimeControl(gameTimeControl)}</span>
+          )}
+          {gameResult && gameResult !== '*' && (
+            <span className="chess-game-result">{gameResult}</span>
+          )}
+        </div>
+      )}
       {topPlayer && (
         <div className="chess-player-name chess-player-top">
           {topPlayer}

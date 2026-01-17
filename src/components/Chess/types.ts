@@ -23,14 +23,21 @@ export interface Arrow {
   color?: ArrowColor;
 }
 
+export interface GameMetadata {
+  whitePlayer?: string | undefined;
+  blackPlayer?: string | undefined;
+  date?: string | undefined;
+  result?: string | undefined;
+  timeControl?: string | undefined;
+}
+
 export interface ChessBoardProps {
   position: string; // FEN position string
   size?: number; // Board size in pixels (default: 400)
   flipped?: boolean; // View from black's perspective
   lastMove?: LastMove | undefined; // Highlight last move squares
   arrows?: Arrow[]; // Arrows to draw on board (e.g., for best move)
-  whitePlayer?: string | undefined; // White player name
-  blackPlayer?: string | undefined; // Black player name
+  metadata?: GameMetadata | undefined; // Game metadata from PGN headers
 }
 
 export interface ChessPositionProps {

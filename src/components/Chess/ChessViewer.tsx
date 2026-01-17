@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Chess } from 'chess.js';
-import { ChessViewerProps, ParsedMove, STARTING_FEN, LastMove, Arrow, NAG } from './types';
+import { ChessViewerProps, ParsedMove, STARTING_FEN, LastMove, Arrow, NAG, GameMetadata } from './types';
 import { ChessBoard } from './ChessBoard';
 import { ChessMoveList } from './ChessMoveList';
 import { EvalBar } from './EvalBar';
@@ -132,8 +132,7 @@ export function ChessViewer({ pgn, defaultFlipped = false }: ChessViewerProps) {
   const [error, setError] = useState<string | null>(null);
   const [analysisEnabled, setAnalysisEnabled] = useState(false);
   const [flipped, setFlipped] = useState(defaultFlipped);
-  const [whitePlayer, setWhitePlayer] = useState<string | undefined>();
-  const [blackPlayer, setBlackPlayer] = useState<string | undefined>();
+  const [metadata, setMetadata] = useState<GameMetadata>({});
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Parse PGN on mount
@@ -151,11 +150,20 @@ export function ChessViewer({ pgn, defaultFlipped = false }: ChessViewerProps) {
         setFlipped(true);
       }
 
-      // Parse player names from headers
+      // Parse game metadata from headers
       const whiteMatch = /\[White\s+"([^"]+)"\]/i.exec(pgn);
       const blackMatch = /\[Black\s+"([^"]+)"\]/i.exec(pgn);
-      setWhitePlayer(whiteMatch?.[1]);
-      setBlackPlayer(blackMatch?.[1]);
+      const dateMatch = /\[Date\s+"([^"]+)"\]/i.exec(pgn);
+      const resultMatch = /\[Result\s+"([^"]+)"\]/i.exec(pgn);
+      const timeControlMatch = /\[TimeControl\s+"([^"]+)"\]/i.exec(pgn);
+
+      setMetadata({
+        whitePlayer: whiteMatch?.[1],
+        blackPlayer: blackMatch?.[1],
+        date: dateMatch?.[1],
+        result: resultMatch?.[1],
+        timeControl: timeControlMatch?.[1],
+      });
 
       // Check for custom starting FEN
       const fenMatch = /\[FEN\s+"([^"]+)"\]/i.exec(pgn);
@@ -356,8 +364,7 @@ export function ChessViewer({ pgn, defaultFlipped = false }: ChessViewerProps) {
             lastMove={currentLastMove}
             arrows={arrows}
             flipped={flipped}
-            whitePlayer={whitePlayer}
-            blackPlayer={blackPlayer}
+            metadata={metadata}
           />
           <div className="chess-nav">
         <button
