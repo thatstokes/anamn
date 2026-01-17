@@ -106,35 +106,51 @@ function AppContent() {
   const [renameTitle, setRenameTitle] = useState("");
   const [contextMenu, setContextMenu] = useState<{ note: Note; x: number; y: number } | null>(null);
   const [isImportingChess, setIsImportingChess] = useState(false);
-  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(() => {
-    // Load from localStorage
-    const stored = localStorage.getItem("anamn-expanded-folders");
-    return stored ? new Set(JSON.parse(stored)) : new Set();
-  });
+  // UI state that persists across sessions
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
+  const [sidebarWidth, setSidebarWidth] = useState(250);
+  const [rightPanelWidth, setRightPanelWidth] = useState(300);
+  const [isResizing, setIsResizing] = useState<"sidebar" | "right-panel" | null>(null);
+  const [hasLoadedUIState, setHasLoadedUIState] = useState(false);
+
+  // Load persisted UI state on mount
+  useEffect(() => {
+    window.api.state.get().then((state) => {
+      if (state.expandedFolders?.length > 0) {
+        setExpandedFolders(new Set(state.expandedFolders));
+      }
+      if (state.sidebarWidth) {
+        setSidebarWidth(state.sidebarWidth);
+      }
+      if (state.rightPanelWidth) {
+        setRightPanelWidth(state.rightPanelWidth);
+      }
+      setHasLoadedUIState(true);
+    });
+  }, []);
 
   // Persist expanded folders
   useEffect(() => {
-    localStorage.setItem("anamn-expanded-folders", JSON.stringify([...expandedFolders]));
-  }, [expandedFolders]);
+    if (!hasLoadedUIState) return;
+    window.api.state.set({ expandedFolders: [...expandedFolders] });
+  }, [expandedFolders, hasLoadedUIState]);
 
-  // Panel widths (resizable)
-  const [sidebarWidth, setSidebarWidth] = useState(() => {
-    const stored = localStorage.getItem("anamn-sidebar-width");
-    return stored ? parseInt(stored, 10) : 250;
-  });
-  const [rightPanelWidth, setRightPanelWidth] = useState(() => {
-    const stored = localStorage.getItem("anamn-right-panel-width");
-    return stored ? parseInt(stored, 10) : 300;
-  });
-  const [isResizing, setIsResizing] = useState<"sidebar" | "right-panel" | null>(null);
+  // Persist panel widths when resize ends
+  const sidebarWidthRef = useRef(sidebarWidth);
+  const rightPanelWidthRef = useRef(rightPanelWidth);
+  sidebarWidthRef.current = sidebarWidth;
+  rightPanelWidthRef.current = rightPanelWidth;
 
-  // Persist panel widths
   useEffect(() => {
-    localStorage.setItem("anamn-sidebar-width", String(sidebarWidth));
-  }, [sidebarWidth]);
-  useEffect(() => {
-    localStorage.setItem("anamn-right-panel-width", String(rightPanelWidth));
-  }, [rightPanelWidth]);
+    if (!hasLoadedUIState) return;
+    // Only persist when resize ends (isResizing becomes null)
+    if (isResizing === null) {
+      window.api.state.set({
+        sidebarWidth: sidebarWidthRef.current,
+        rightPanelWidth: rightPanelWidthRef.current,
+      });
+    }
+  }, [isResizing, hasLoadedUIState]);
 
   // Handle resize drag
   useEffect(() => {

@@ -82,6 +82,9 @@ export interface Config {
 export interface AppState {
   recentNotes: string[]; // Array of note titles, most recent first
   lastOpenedNote: string | null; // Path of the last opened note
+  expandedFolders: string[]; // Array of expanded folder paths
+  sidebarWidth: number; // Width of sidebar in pixels
+  rightPanelWidth: number; // Width of right panel in pixels
 }
 
 export interface ConfigApi {
