@@ -62,6 +62,7 @@ button:hover {
 /* Graph View */
 
 .graph-view-container {
+  position: relative;
   flex: 1;
   background: var(--bg-primary);
   overflow: hidden;
@@ -69,4 +70,24 @@ button:hover {
 
 .cursor-pointer {
   cursor: pointer;
+}
+
+.cursor-grab {
+  cursor: grab;
+}
+
+.cursor-grabbing {
+  cursor: grabbing;
+}
+
+.graph-zoom-indicator {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  pointer-events: none;
 }

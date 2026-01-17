@@ -203,6 +203,7 @@ function AppContent() {
     setSelectedNote(note);
     setIsRenaming(false);
     setViewMode("rendered");
+    setShowGraphView(false);
     const text = await window.api.notes.read(note.path);
     setContent(text);
     lastSavedContentRef.current = text;
@@ -210,6 +211,11 @@ function AppContent() {
     window.api.state.set({ lastOpenedNote: note.path });
     const inboundLinks = await window.api.notes.getBacklinks(note.title);
     setBacklinks(inboundLinks);
+    // Scroll to top of the note
+    setTimeout(() => {
+      renderedViewRef.current?.scrollTo(0, 0);
+      textareaRef.current?.scrollTo(0, 0);
+    }, 0);
   };
 
   const handleCreateNote = async () => {
@@ -547,10 +553,7 @@ function AppContent() {
             <GraphView
               notes={notes}
               selectedNote={selectedNote}
-              onSelectNote={(note) => {
-                setShowGraphView(false);
-                handleSelectNote(note);
-              }}
+              onSelectNote={handleSelectNote}
             />
           </div>
         ) : (
