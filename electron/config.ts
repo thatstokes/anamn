@@ -2,6 +2,7 @@ import fs from "fs/promises";
 import path from "path";
 import os from "os";
 import { app } from "electron";
+import * as TOML from "smol-toml";
 
 export type ViewMode = "edit" | "rendered";
 
@@ -98,14 +99,20 @@ const DEFAULT_CONFIG: Config = {
   chessImport: DEFAULT_CHESS_IMPORT,
 };
 
-const CONFIG_FILENAME = "anamn.config.json";
+const CONFIG_FILENAME = "anamn.config.toml";
+const LEGACY_CONFIG_FILENAME = "anamn.config.json"; // For migration
 
 // User config directory: ~/.config/anamn/ (XDG standard, works on Mac and Linux)
 function getUserConfigDir(): string {
   return path.join(os.homedir(), ".config", "anamn");
 }
 
-function getConfigPaths(): string[] {
+interface ConfigPath {
+  path: string;
+  format: "toml" | "json";
+}
+
+function getConfigPaths(): ConfigPath[] {
   // 1. App root directory (for development / portable mode)
   const appRoot = app.isPackaged
     ? path.dirname(app.getPath("exe"))
@@ -114,9 +121,12 @@ function getConfigPaths(): string[] {
   // 2. User config directory: ~/.config/anamn/
   const userConfigDir = getUserConfigDir();
 
+  // Check TOML first, then legacy JSON for migration
   return [
-    path.join(appRoot, CONFIG_FILENAME),
-    path.join(userConfigDir, CONFIG_FILENAME),
+    { path: path.join(appRoot, CONFIG_FILENAME), format: "toml" },
+    { path: path.join(appRoot, LEGACY_CONFIG_FILENAME), format: "json" },
+    { path: path.join(userConfigDir, CONFIG_FILENAME), format: "toml" },
+    { path: path.join(userConfigDir, LEGACY_CONFIG_FILENAME), format: "json" },
   ];
 }
 
@@ -125,13 +135,21 @@ export async function loadConfig(): Promise<Config> {
 
   // Start with defaults
   let config: Config = { ...DEFAULT_CONFIG };
+  let loadedFromJson = false;
 
   // Load project config first (as base), then user config (to override)
   // This way user config always takes priority
-  for (const configPath of paths) {
+  for (const { path: configPath, format } of paths) {
     try {
       const content = await fs.readFile(configPath, "utf-8");
-      const parsed = JSON.parse(content) as Partial<Config>;
+      const parsed = (format === "toml"
+        ? TOML.parse(content)
+        : JSON.parse(content)) as Partial<Config>;
+
+      if (format === "json") {
+        loadedFromJson = true;
+      }
+
       // Deep merge each config layer
       config = {
         ...config,
@@ -166,6 +184,11 @@ export async function loadConfig(): Promise<Config> {
     }
   }
 
+  // Migrate: if we loaded from JSON, save as TOML
+  if (loadedFromJson) {
+    await saveConfig(config);
+  }
+
   return config;
 }
 
@@ -175,5 +198,12 @@ export async function saveConfig(config: Config): Promise<void> {
   const userConfigPath = path.join(userConfigDir, CONFIG_FILENAME);
 
   await fs.mkdir(userConfigDir, { recursive: true });
-  await fs.writeFile(userConfigPath, JSON.stringify(config, null, 2), "utf-8");
+
+  // Generate TOML with a header comment
+  const tomlContent = `# Anamn Configuration
+# https://github.com/twirlyowl/anamn
+
+${TOML.stringify(config)}`;
+
+  await fs.writeFile(userConfigPath, tomlContent, "utf-8");
 }
