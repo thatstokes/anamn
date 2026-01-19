@@ -99,8 +99,9 @@ const DEFAULT_CONFIG: Config = {
   chessImport: DEFAULT_CHESS_IMPORT,
 };
 
-const CONFIG_FILENAME = "anamn.config.toml";
-const LEGACY_CONFIG_FILENAME = "anamn.config.json"; // For migration
+const CONFIG_FILENAME = "config.toml";
+const LEGACY_TOML_FILENAME = "anamn.config.toml"; // For migration
+const LEGACY_JSON_FILENAME = "anamn.config.json"; // For migration
 
 // User config directory: ~/.config/anamn/ (XDG standard, works on Mac and Linux)
 function getUserConfigDir(): string {
@@ -121,12 +122,14 @@ function getConfigPaths(): ConfigPath[] {
   // 2. User config directory: ~/.config/anamn/
   const userConfigDir = getUserConfigDir();
 
-  // Check TOML first, then legacy JSON for migration
+  // Check current filename first, then legacy filenames for migration
   return [
     { path: path.join(appRoot, CONFIG_FILENAME), format: "toml" },
-    { path: path.join(appRoot, LEGACY_CONFIG_FILENAME), format: "json" },
+    { path: path.join(appRoot, LEGACY_TOML_FILENAME), format: "toml" },
+    { path: path.join(appRoot, LEGACY_JSON_FILENAME), format: "json" },
     { path: path.join(userConfigDir, CONFIG_FILENAME), format: "toml" },
-    { path: path.join(userConfigDir, LEGACY_CONFIG_FILENAME), format: "json" },
+    { path: path.join(userConfigDir, LEGACY_TOML_FILENAME), format: "toml" },
+    { path: path.join(userConfigDir, LEGACY_JSON_FILENAME), format: "json" },
   ];
 }
 
@@ -135,7 +138,7 @@ export async function loadConfig(): Promise<Config> {
 
   // Start with defaults
   let config: Config = { ...DEFAULT_CONFIG };
-  let loadedFromJson = false;
+  let needsMigration = false;
 
   // Load project config first (as base), then user config (to override)
   // This way user config always takes priority
@@ -146,8 +149,10 @@ export async function loadConfig(): Promise<Config> {
         ? TOML.parse(content)
         : JSON.parse(content)) as Partial<Config>;
 
-      if (format === "json") {
-        loadedFromJson = true;
+      // Check if loaded from legacy filename (needs migration to new filename)
+      const filename = path.basename(configPath);
+      if (filename !== CONFIG_FILENAME) {
+        needsMigration = true;
       }
 
       // Deep merge each config layer
@@ -184,8 +189,8 @@ export async function loadConfig(): Promise<Config> {
     }
   }
 
-  // Migrate: if we loaded from JSON, save as TOML
-  if (loadedFromJson) {
+  // Migrate: if we loaded from legacy filename, save to new filename
+  if (needsMigration) {
     await saveConfig(config);
   }
 
