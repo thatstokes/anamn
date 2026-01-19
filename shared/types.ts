@@ -70,8 +70,6 @@ export interface Config {
   default_view_mode: ViewMode;
   shortcuts: KeyboardShortcuts;
   rightPanelSections: RightPanelSection[]; // Sections to show, in order
-  rightPanelOpen: boolean; // Whether right panel is open on startup
-  collapsedSections: RightPanelSection[]; // Which sections are collapsed
   dailyNote: DailyNoteConfig; // Daily note settings
   theme: ThemeConfig; // Theme settings
   chess: ChessConfig; // Chess engine settings
@@ -85,6 +83,8 @@ export interface AppState {
   expandedFolders: string[]; // Array of expanded folder paths
   sidebarWidth: number; // Width of sidebar in pixels
   rightPanelWidth: number; // Width of right panel in pixels
+  rightPanelOpen: boolean; // Whether right panel is open
+  collapsedSections: RightPanelSection[]; // Which sections are collapsed
 }
 
 export interface ConfigApi {

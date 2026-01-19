@@ -9,12 +9,16 @@ import { app } from "electron";
  * - Linux: ~/.local/state/anamn/ (XDG_STATE_HOME)
  * - macOS: ~/Library/Application Support/Anamn/
  */
+export type RightPanelSection = "links" | "graph" | "recents" | "tags";
+
 export interface AppState {
   recentNotes: string[]; // Array of note titles, most recent first
   lastOpenedNote: string | null; // Path of the last opened note
   expandedFolders: string[]; // Array of expanded folder paths
   sidebarWidth: number; // Width of sidebar in pixels
   rightPanelWidth: number; // Width of right panel in pixels
+  rightPanelOpen: boolean; // Whether right panel is open
+  collapsedSections: RightPanelSection[]; // Which right panel sections are collapsed
 }
 
 const DEFAULT_STATE: AppState = {
@@ -23,6 +27,8 @@ const DEFAULT_STATE: AppState = {
   expandedFolders: [],
   sidebarWidth: 250,
   rightPanelWidth: 300,
+  rightPanelOpen: true,
+  collapsedSections: [],
 };
 
 const STATE_FILENAME = "state.json";

@@ -48,8 +48,6 @@ export interface Config {
   default_view_mode: ViewMode;
   shortcuts: KeyboardShortcuts;
   rightPanelSections: RightPanelSection[]; // Sections to show, in order
-  rightPanelOpen: boolean; // Whether right panel is open on startup
-  collapsedSections: RightPanelSection[]; // Which sections are collapsed
   dailyNote: DailyNoteConfig; // Daily note settings
   theme: ThemeConfig; // Theme settings
   chess: ChessConfig; // Chess engine settings
@@ -91,8 +89,6 @@ const DEFAULT_CONFIG: Config = {
   default_view_mode: "rendered",
   shortcuts: DEFAULT_SHORTCUTS,
   rightPanelSections: ["recents", "links", "tags", "graph"],
-  rightPanelOpen: true,
-  collapsedSections: [],
   dailyNote: DEFAULT_DAILY_NOTE,
   theme: DEFAULT_THEME,
   chess: DEFAULT_CHESS,
@@ -181,8 +177,6 @@ export async function loadConfig(): Promise<Config> {
         },
         // Only override arrays if explicitly provided
         rightPanelSections: parsed.rightPanelSections ?? config.rightPanelSections,
-        rightPanelOpen: parsed.rightPanelOpen ?? config.rightPanelOpen,
-        collapsedSections: parsed.collapsedSections ?? config.collapsedSections,
       };
     } catch {
       // File doesn't exist or invalid, continue to next

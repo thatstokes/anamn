@@ -77,16 +77,24 @@ export function UIProvider({ children }: { children: React.ReactNode }) {
     const config = await window.api.config.get();
     setShortcuts(config.shortcuts);
     setRightPanelSections(config.rightPanelSections);
-    setShowRightPanel(config.rightPanelOpen);
-    setCollapsedSections(new Set(config.collapsedSections));
     setChessConfig(config.chess ?? DEFAULT_CHESS_CONFIG);
     setChessImportConfig(config.chessImport ?? DEFAULT_CHESS_IMPORT_CONFIG);
   }, []);
 
-  // Load config on mount
+  // Load config and state on mount
   useEffect(() => {
     reloadConfig();
+    // Load UI state from state storage (not config)
+    window.api.state.get().then((state) => {
+      setShowRightPanel(state.rightPanelOpen);
+      setCollapsedSections(new Set(state.collapsedSections));
+    });
   }, [reloadConfig]);
+
+  // Persist right panel open state
+  useEffect(() => {
+    window.api.state.set({ rightPanelOpen: showRightPanel });
+  }, [showRightPanel]);
 
   const toggleSectionCollapse = useCallback((section: RightPanelSection) => {
     setCollapsedSections((prev) => {
@@ -96,7 +104,7 @@ export function UIProvider({ children }: { children: React.ReactNode }) {
       } else {
         next.add(section);
       }
-      window.api.config.set({ collapsedSections: Array.from(next) });
+      window.api.state.set({ collapsedSections: Array.from(next) });
       return next;
     });
   }, []);
