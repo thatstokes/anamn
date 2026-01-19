@@ -7,12 +7,10 @@ interface LogoProps {
 // Color schemes for each variant
 const COLORS = {
   dark: {
-    background: "#07140a",
     shadow: "#0b3d19",
     glyph: "#39ff73",
   },
   light: {
-    background: "#f0f5f1",
     shadow: "#b8d4be",
     glyph: "#0d7a2e",
   },
@@ -34,9 +32,6 @@ export function Logo({ height = 28, className, variant = "dark" }: LogoProps) {
       className={className}
       style={{ display: 'block' }}
     >
-      {/* background */}
-      <rect x="0" y="0" width="31" height="9" fill={colors.background} />
-
       {/* shadow (offset by 1px in grid space) */}
       <g fill={colors.shadow}>
         {/* a (shadow) */}
