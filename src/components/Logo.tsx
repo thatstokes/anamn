@@ -1,12 +1,28 @@
 interface LogoProps {
   height?: number;
   className?: string;
+  variant?: "dark" | "light";
 }
 
-export function Logo({ height = 28, className }: LogoProps) {
+// Color schemes for each variant
+const COLORS = {
+  dark: {
+    background: "#07140a",
+    shadow: "#0b3d19",
+    glyph: "#39ff73",
+  },
+  light: {
+    background: "#f0f5f1",
+    shadow: "#b8d4be",
+    glyph: "#0d7a2e",
+  },
+};
+
+export function Logo({ height = 28, className, variant = "dark" }: LogoProps) {
   // Original viewBox is 31x9, calculate width to maintain aspect ratio
   const aspectRatio = 31 / 9;
   const width = height * aspectRatio;
+  const colors = COLORS[variant];
 
   return (
     <svg
@@ -19,10 +35,10 @@ export function Logo({ height = 28, className }: LogoProps) {
       style={{ display: 'block' }}
     >
       {/* background */}
-      <rect x="0" y="0" width="31" height="9" fill="#07140a" />
+      <rect x="0" y="0" width="31" height="9" fill={colors.background} />
 
       {/* shadow (offset by 1px in grid space) */}
-      <g fill="#0b3d19">
+      <g fill={colors.shadow}>
         {/* a (shadow) */}
         <rect x="3" y="2" width="3" height="1" />
         <rect x="2" y="3" width="1" height="1" />
@@ -93,7 +109,7 @@ export function Logo({ height = 28, className }: LogoProps) {
       </g>
 
       {/* main glyph */}
-      <g fill="#39ff73">
+      <g fill={colors.glyph}>
         {/* a */}
         <rect x="2" y="1" width="3" height="1" />
         <rect x="1" y="2" width="1" height="1" />

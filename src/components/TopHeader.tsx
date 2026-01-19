@@ -1,5 +1,6 @@
 import type { Note } from "../../shared/types.js";
 import { useUI } from "../state/contexts/UIContext.js";
+import { useTheme } from "./ThemeProvider.js";
 import { Logo } from "./Logo.js";
 
 interface TopHeaderProps {
@@ -17,10 +18,13 @@ export function TopHeader({ selectedNote, onSelectNote }: TopHeaderProps) {
     setShowRightPanel,
     searchInputRef,
   } = useUI();
+  const { theme } = useTheme();
+  const logoVariant = theme.mode === "light" ? "light" : "dark";
+
   return (
     <div className="top-header">
       <div className="top-header-title">
-        <Logo height={24} />
+        <Logo height={24} variant={logoVariant} />
       </div>
       <div className="top-header-search">
         <input

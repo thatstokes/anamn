@@ -25,7 +25,7 @@ import { CommandPalette } from "./components/CommandPalette.js";
 import { SettingsModal } from "./components/Settings/SettingsModal.js";
 import { VerticalNavBar } from "./components/VerticalNavBar.js";
 import { GraphView } from "./components/RightPanel/GraphView.js";
-import { ThemeProvider } from "./components/ThemeProvider.js";
+import { ThemeProvider, useTheme } from "./components/ThemeProvider.js";
 import { Logo } from "./components/Logo.js";
 
 export function App() {
@@ -97,6 +97,10 @@ function AppContent() {
     renderedViewRef,
     contentRef,
   } = useEditor();
+
+  // Theme
+  const { theme } = useTheme();
+  const logoVariant = theme.mode === "light" ? "light" : "dark";
 
   // Workspace state
   const [workspace, setWorkspace] = useState<string | null>(null);
@@ -685,7 +689,7 @@ function AppContent() {
   if (!workspace) {
     return (
       <div className="welcome">
-        <Logo height={48} />
+        <Logo height={48} variant={logoVariant} />
         <p>Select a folder to store your notes</p>
         <button onClick={handleSelectWorkspace}>Select Folder</button>
       </div>
