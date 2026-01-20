@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { ChessPositionProps, Arrow } from './types';
 import { ChessBoard } from './ChessBoard';
 import { EvalBar } from './EvalBar';
@@ -7,10 +7,41 @@ import { useOpening } from './useOpening';
 import { uciToSan, uciLinesToSan, parseUciMove } from './chessUtils';
 import { useUI } from '../../state/contexts/UIContext.js';
 
-export function ChessPosition({ fen }: ChessPositionProps) {
+// Parse FEN content that may include PGN-style headers
+function parseFenContent(content: string): { fen: string; flipped: boolean } {
+  const lines = content.trim().split('\n');
+  let flipped = false;
+  let fenLine = '';
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    // Check for header like [FlipBoard "true"]
+    const headerMatch = /^\[(\w+)\s+"([^"]+)"\]$/.exec(trimmed);
+    if (headerMatch && headerMatch[1] && headerMatch[2]) {
+      const key = headerMatch[1];
+      const value = headerMatch[2];
+      if (key.toLowerCase() === 'flipboard') {
+        flipped = value.toLowerCase() === 'true';
+      }
+    } else if (trimmed && !trimmed.startsWith('[')) {
+      // Non-empty line that's not a header is the FEN
+      fenLine = trimmed;
+    }
+  }
+
+  return { fen: fenLine, flipped };
+}
+
+export function ChessPosition({ fen: rawContent }: ChessPositionProps) {
   const { chessConfig } = useUI();
   const [analysisEnabled, setAnalysisEnabled] = useState(false);
-  const [flipped, setFlipped] = useState(false);
+
+  // Parse content to extract FEN and any headers
+  const { fen, flipped: defaultFlipped } = useMemo(
+    () => parseFenContent(rawContent),
+    [rawContent]
+  );
+  const [flipped, setFlipped] = useState(defaultFlipped);
   const { analysis, loading } = useStockfish(fen, {
     enabled: analysisEnabled,
     depth: chessConfig.engineDepth,
