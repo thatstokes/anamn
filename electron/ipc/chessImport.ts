@@ -202,13 +202,14 @@ function parsePgnHeaders(pgn: string): Record<string, string> {
  *
  * TCN uses a 64-character alphabet where each character maps to a square (0-63).
  * Index 0 = a8 (top-left), index 63 = h1 (bottom-right).
- * For promotions, indices beyond 63 encode both destination and promotion piece.
+ * For promotions, indices beyond 63 encode both destination file and promotion piece.
  */
 function decodeTcnMoves(tcn: string): string[] {
   if (!tcn) return [];
 
-  // TCN encoding: first 64 chars map to squares, extended chars for promotions
-  const TCN_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!?";
+  // Extended TCN encoding: 64 squares + promotion characters
+  // Based on Chess.com's actual encoding
+  const TCN_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!?{~}(^)[_]@#$,./|-*";
   const FILES = "abcdefgh";
 
   // Helper to convert TCN index to UCI square (e.g., index 0 -> "a8", index 63 -> "h1")
@@ -230,12 +231,20 @@ function decodeTcnMoves(tcn: string): string[] {
     const idx1 = TCN_CHARS.indexOf(char1);
     const idx2 = TCN_CHARS.indexOf(char2);
 
+    // Skip unrecognized characters
     if (idx1 === -1 || idx2 === -1) {
+      console.warn(`TCN: Unrecognized character at position ${i}: '${char1}${char2}'`);
       i += 2;
       continue;
     }
 
-    // Decode from-square (always in 0-63 range)
+    // From-square must be a valid board square (0-63)
+    if (idx1 >= 64) {
+      console.warn(`TCN: Invalid from-square index ${idx1} at position ${i}`);
+      i += 2;
+      continue;
+    }
+
     const fromSquare = idxToSquare(idx1);
 
     // Decode to-square - may include promotion encoding
@@ -244,22 +253,25 @@ function decodeTcnMoves(tcn: string): string[] {
 
     if (idx2 >= 64) {
       // This is a promotion move
-      // Indices 64+ encode: file (0-7) + piece type offset
-      // 64-71: queen promotion to files a-h
-      // But the actual encoding seems to be more complex
-      // The destination file is encoded, and we determine rank from the from-square
+      // Indices 64+ encode: piece type (in groups of 8) + destination file (0-7)
       const promoOffset = idx2 - 64;
       const toFile = FILES[promoOffset % 8];
+
       // White promotes from rank 7 to rank 8, black from rank 2 to rank 1
       const fromRank = parseInt(fromSquare[1] || '0');
       const toRank = fromRank === 7 ? 8 : 1;
       toSquare = `${toFile}${toRank}`;
 
       // Determine promotion piece based on offset range
-      if (promoOffset < 8) promotion = 'q';       // 64-71: queen
-      else if (promoOffset < 16) promotion = 'n'; // 72-79: knight
-      else if (promoOffset < 24) promotion = 'b'; // 80-87: bishop
-      else promotion = 'r';                        // 88-95: rook
+      // Each piece type gets 8 indices (one per file)
+      const pieceType = Math.floor(promoOffset / 8);
+      switch (pieceType) {
+        case 0: promotion = 'q'; break; // 64-71: queen
+        case 1: promotion = 'n'; break; // 72-79: knight
+        case 2: promotion = 'b'; break; // 80-87: bishop
+        case 3: promotion = 'r'; break; // 88-95: rook
+        default: promotion = 'q'; break; // fallback to queen
+      }
     } else {
       toSquare = idxToSquare(idx2);
     }
@@ -330,7 +342,8 @@ function convertUciToSan(uciMoves: string[]): string[] {
   const chess = new Chess();
   const sanMoves: string[] = [];
 
-  for (const uci of uciMoves) {
+  for (let i = 0; i < uciMoves.length; i++) {
+    const uci = uciMoves[i];
     if (!uci || uci.length < 4) continue;
 
     let from = uci.slice(0, 2);
@@ -361,8 +374,12 @@ function convertUciToSan(uciMoves: string[]): string[] {
         sanMoves.push(moveResult.san);
       }
     } catch {
-      // Invalid move - stop processing
-      console.error(`Invalid UCI move: ${uci}`);
+      // Invalid move - log details and stop processing
+      const moveNum = Math.floor(i / 2) + 1;
+      const color = i % 2 === 0 ? "White" : "Black";
+      console.error(`Invalid UCI move at ${moveNum}. ${color}: ${uci} (original: ${uciMoves[i]})`);
+      console.error(`Board state:\n${chess.ascii()}`);
+      console.error(`Previous moves: ${sanMoves.slice(-6).join(' ')}`);
       break;
     }
   }
