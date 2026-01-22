@@ -21,6 +21,7 @@ var api = {
     getNotesWithTag: (tag) => import_electron.ipcRenderer.invoke("notes:getNotesWithTag", tag)
   },
   folders: {
+    list: () => import_electron.ipcRenderer.invoke("folders:list"),
     create: (name, parentFolder) => import_electron.ipcRenderer.invoke("folders:create", name, parentFolder)
   },
   config: {

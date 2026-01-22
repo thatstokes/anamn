@@ -201,6 +201,7 @@ function parsePgnHeaders(pgn: string): Record<string, string> {
  * Each pair of characters encodes from-square and to-square
  *
  * TCN uses a 64-character alphabet where each character maps to a square (0-63).
+ * Index 0 = a8 (top-left), index 63 = h1 (bottom-right).
  * For promotions, indices beyond 63 encode both destination and promotion piece.
  */
 function decodeTcnMoves(tcn: string): string[] {
@@ -209,11 +210,13 @@ function decodeTcnMoves(tcn: string): string[] {
   // TCN encoding: first 64 chars map to squares, extended chars for promotions
   const TCN_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!?";
   const FILES = "abcdefgh";
-  const RANKS = "12345678";
 
-  // Promotion pieces by index offset (indices 64+ encode promotions)
-  // Knight=64-71, Bishop=72-79, Rook=80-87 (relative to promotion square)
-  const PROMO_PIECES = ['q', 'q', 'q', 'q', 'q', 'q', 'q', 'q', 'n', 'n', 'n', 'n', 'n', 'n', 'n', 'n', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'r', 'r', 'r', 'r', 'r', 'r', 'r', 'r'];
+  // Helper to convert TCN index to UCI square (e.g., index 0 -> "a8", index 63 -> "h1")
+  function idxToSquare(idx: number): string {
+    const file = FILES[idx % 8];
+    const rank = 8 - Math.floor(idx / 8); // TCN index 0 = rank 8, index 56-63 = rank 1
+    return `${file}${rank}`;
+  }
 
   const moves: string[] = [];
   let i = 0;
@@ -233,32 +236,36 @@ function decodeTcnMoves(tcn: string): string[] {
     }
 
     // Decode from-square (always in 0-63 range)
-    const fromFile = FILES[idx1 % 8];
-    const fromRank = RANKS[Math.floor(idx1 / 8)];
+    const fromSquare = idxToSquare(idx1);
 
     // Decode to-square - may include promotion encoding
-    let toIdx = idx2;
+    let toSquare: string;
     let promotion = '';
 
     if (idx2 >= 64) {
-      // This is a promotion move - decode the promotion piece and actual square
-      // The encoding uses indices 64+ to represent promotions
+      // This is a promotion move
+      // Indices 64+ encode: file (0-7) + piece type offset
+      // 64-71: queen promotion to files a-h
+      // But the actual encoding seems to be more complex
+      // The destination file is encoded, and we determine rank from the from-square
       const promoOffset = idx2 - 64;
-      toIdx = promoOffset % 8 + (promoOffset >= 24 ? 56 : promoOffset >= 16 ? 56 : promoOffset >= 8 ? 56 : 56);
-      // Actually, for simplicity, just extract the file and assume back rank
-      const promoFile = promoOffset % 8;
-      const promoRank = fromRank === '7' ? 7 : 0; // White promotes to rank 8, black to rank 1
-      toIdx = promoFile + promoRank * 8;
-      promotion = PROMO_PIECES[promoOffset] || 'q';
+      const toFile = FILES[promoOffset % 8];
+      // White promotes from rank 7 to rank 8, black from rank 2 to rank 1
+      const fromRank = parseInt(fromSquare[1] || '0');
+      const toRank = fromRank === 7 ? 8 : 1;
+      toSquare = `${toFile}${toRank}`;
+
+      // Determine promotion piece based on offset range
+      if (promoOffset < 8) promotion = 'q';       // 64-71: queen
+      else if (promoOffset < 16) promotion = 'n'; // 72-79: knight
+      else if (promoOffset < 24) promotion = 'b'; // 80-87: bishop
+      else promotion = 'r';                        // 88-95: rook
+    } else {
+      toSquare = idxToSquare(idx2);
     }
 
-    const toFile = FILES[toIdx % 8];
-    const toRank = RANKS[Math.floor(toIdx / 8)];
-
-    if (fromFile && fromRank && toFile && toRank) {
-      const move = `${fromFile}${fromRank}${toFile}${toRank}${promotion}`;
-      moves.push(move);
-    }
+    const move = `${fromSquare}${toSquare}${promotion}`;
+    moves.push(move);
 
     i += 2;
   }
