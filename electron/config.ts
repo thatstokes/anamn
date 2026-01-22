@@ -17,7 +17,7 @@ export interface KeyboardShortcuts {
   dailyNote: string;
 }
 
-export type RightPanelSection = "links" | "graph" | "recents" | "tags";
+export type RightPanelSection = "links" | "graph" | "tags";
 
 export interface DailyNoteConfig {
   format: string;  // Luxon date format, default "yyyy-MM-dd"
@@ -88,7 +88,7 @@ const DEFAULT_CONFIG: Config = {
   notes_dir: "",
   default_view_mode: "rendered",
   shortcuts: DEFAULT_SHORTCUTS,
-  rightPanelSections: ["recents", "links", "tags", "graph"],
+  rightPanelSections: ["links", "tags", "graph"],
   dailyNote: DEFAULT_DAILY_NOTE,
   theme: DEFAULT_THEME,
   chess: DEFAULT_CHESS,

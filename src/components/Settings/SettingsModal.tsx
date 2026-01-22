@@ -51,7 +51,6 @@ export function SettingsModal({ onClose, onSave }: SettingsModalProps) {
     suffix: "",
   });
   const [rightPanelSections, setRightPanelSections] = useState<RightPanelSection[]>([
-    "recents",
     "links",
     "tags",
     "graph",

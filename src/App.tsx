@@ -77,7 +77,6 @@ function AppContent() {
     setSelectedNote,
     backlinks,
     setBacklinks,
-    recentNotes,
     setRecentNotes,
     trackRecentNote,
     selectedNoteRef,
@@ -793,7 +792,6 @@ function AppContent() {
               selectedNote={selectedNote}
               outgoingLinks={outgoingLinks}
               backlinks={backlinks}
-              recentNotes={recentNotes}
               tags={noteTags}
               onSelectNote={handleSelectNote}
               onLinkClick={handleLinkClick}

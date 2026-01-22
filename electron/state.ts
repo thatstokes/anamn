@@ -9,7 +9,7 @@ import { app } from "electron";
  * - Linux: ~/.local/state/anamn/ (XDG_STATE_HOME)
  * - macOS: ~/Library/Application Support/Anamn/
  */
-export type RightPanelSection = "links" | "graph" | "recents" | "tags";
+export type RightPanelSection = "links" | "graph" | "tags";
 
 export interface AppState {
   recentNotes: string[]; // Array of note titles, most recent first

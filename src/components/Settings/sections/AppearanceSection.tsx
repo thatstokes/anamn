@@ -7,10 +7,9 @@ interface AppearanceSectionProps {
   setRightPanelSections: (sections: RightPanelSection[]) => void;
 }
 
-const ALL_SECTIONS: RightPanelSection[] = ["recents", "links", "tags", "graph"];
+const ALL_SECTIONS: RightPanelSection[] = ["links", "tags", "graph"];
 
 const SECTION_LABELS: Record<RightPanelSection, string> = {
-  recents: "Recent Notes",
   links: "Links",
   tags: "Tags",
   graph: "Graph",

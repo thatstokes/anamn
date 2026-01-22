@@ -1,7 +1,6 @@
 import { useState } from "react";
 import type { Note, RightPanelSection } from "../../../shared/types.js";
 import { LinksSection } from "./LinksSection.js";
-import { RecentNotesSection } from "./RecentNotesSection.js";
 import { GraphView } from "./GraphView.js";
 import { TagsSection } from "./TagsSection.js";
 
@@ -14,7 +13,6 @@ interface RightPanelProps {
   selectedNote: Note | null;
   outgoingLinks: string[];
   backlinks: Note[];
-  recentNotes: string[];
   tags: string[];
   onSelectNote: (note: Note) => void;
   onLinkClick: (linkTitle: string) => void;
@@ -31,7 +29,6 @@ export function RightPanel({
   selectedNote,
   outgoingLinks,
   backlinks,
-  recentNotes,
   tags,
   onSelectNote,
   onLinkClick,
@@ -126,21 +123,6 @@ export function RightPanel({
           onDragOver={(e) => handleDragOver(e, section)}
           onDrop={(e) => handleDrop(e, section)}
         >
-          {section === "recents" && (
-            <>
-              {renderSectionHeader("recents", "Recent Notes")}
-              {!collapsedSections.has("recents") && (
-                <div className="right-panel-section-content">
-                  <RecentNotesSection
-                    recentNotes={recentNotes}
-                    notes={notes}
-                    selectedNote={selectedNote}
-                    onSelectNote={onSelectNote}
-                  />
-                </div>
-              )}
-            </>
-          )}
           {section === "links" && (
             <>
               {renderSectionHeader("links", "Links")}

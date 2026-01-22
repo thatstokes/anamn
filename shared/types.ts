@@ -23,7 +23,7 @@ export interface KeyboardShortcuts {
   dailyNote: string;
 }
 
-export type RightPanelSection = "links" | "graph" | "recents" | "tags";
+export type RightPanelSection = "links" | "graph" | "tags";
 
 export interface DailyNoteConfig {
   format: string;  // Luxon date format, default "yyyy-MM-dd"
