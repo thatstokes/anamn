@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Chess } from 'chess.js';
-import { ChessViewerProps, ParsedMove, STARTING_FEN, LastMove, Arrow, NAG, GameMetadata } from './types';
+import { ChessViewerProps, ParsedMove, STARTING_FEN, LastMove, Arrow, NAG, NAG_SYMBOLS, GameMetadata } from './types';
 import { ChessBoard } from './ChessBoard';
 import { ChessMoveList } from './ChessMoveList';
 import { EvalBar } from './EvalBar';
@@ -123,7 +123,211 @@ function parseCommentsFromPgn(pgn: string): Map<number, string> {
   return commentMap;
 }
 
-export function ChessViewer({ pgn, defaultFlipped = false }: ChessViewerProps) {
+// Update PGN with annotation for a specific move
+function updatePgnAnnotation(pgn: string, moveIndex: number, nag: NAG | null, moves: ParsedMove[]): string {
+  const move = moves[moveIndex];
+  if (!move) return pgn;
+
+  const san = move.san;
+  const isWhite = moveIndex % 2 === 0;
+  const moveNumber = Math.floor(moveIndex / 2) + 1;
+
+  // Symbol annotation (!, ?, !!, ??, !?, ?!)
+  const nagSymbol = nag ? NAG_SYMBOLS[nag] : '';
+
+  // Find the move in the PGN text
+  // We need to find the specific occurrence based on move number and color
+  // Pattern: moveNumber. whiteSan blackSan or moveNumber... blackSan (after comment)
+  const lines = pgn.split('\n');
+  const headerEndIndex = lines.findIndex((line, i) =>
+    i > 0 && !line.startsWith('[') && lines[i - 1]?.startsWith('[')
+  );
+  const moveTextStartIndex = headerEndIndex >= 0 ? headerEndIndex : 0;
+
+  // Reconstruct with headers preserved
+  const headers = lines.slice(0, moveTextStartIndex).join('\n');
+  let moveText = lines.slice(moveTextStartIndex).join('\n');
+
+  // For white moves, match the pattern: "1. e4!?" -> replace with "1. e4" + new annotation
+  // For black moves, match: "1. e4 c6!?" -> replace with "1. e4 c6" + new annotation
+  let found = false;
+
+  if (isWhite) {
+    // White move: "N. san" where N is move number
+    moveText = moveText.replace(
+      new RegExp(`(${moveNumber}\\.\\s*)(${escapeRegex(san)})([!?]{1,2})?`),
+      (_match, prefix, moveSan, _existingNag) => {
+        found = true;
+        return `${prefix}${moveSan}${nagSymbol}`;
+      }
+    );
+  } else {
+    // Black move - trickier because we need to find the right occurrence after white's move
+    // Build a more specific pattern that matches the full move pair context
+    const whiteMoveIndex = moveIndex - 1;
+    const whiteMove = moves[whiteMoveIndex];
+    if (whiteMove) {
+      const whiteSan = whiteMove.san;
+      // Match: "N. whiteSan... blackSan" with possible annotations and comments
+      const fullPattern = new RegExp(
+        `(${moveNumber}\\.\\s*${escapeRegex(whiteSan)}[!?]*(?:\\s*\\{[^}]*\\})?\\s*)(${escapeRegex(san)})([!?]{1,2})?`
+      );
+      moveText = moveText.replace(fullPattern, (_match, prefix, moveSan, _existingNag) => {
+        found = true;
+        return `${prefix}${moveSan}${nagSymbol}`;
+      });
+    }
+  }
+
+  // If not found with simple pattern, try a more general approach
+  if (!found) {
+    // Count occurrences of the SAN to find the right one
+    let targetOccurrence = 0;
+    for (let i = 0; i <= moveIndex; i++) {
+      if (moves[i]?.san === san) targetOccurrence++;
+    }
+
+    // Replace the nth occurrence
+    let occurrenceCount = 0;
+    moveText = moveText.replace(
+      new RegExp(`\\b(${escapeRegex(san)})([!?]{1,2})?\\b`, 'g'),
+      (match, moveSan, _existingNag) => {
+        occurrenceCount++;
+        if (occurrenceCount === targetOccurrence) {
+          return `${moveSan}${nagSymbol}`;
+        }
+        return match;
+      }
+    );
+  }
+
+  return headers ? `${headers}\n${moveText}` : moveText;
+}
+
+// Escape special regex characters
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// Update PGN with a comment for a specific move
+// This function handles both SAN (Nf3) and UCI (g1f3) move notation
+function updatePgnComment(pgn: string, moveIndex: number, comment: string, _moves: ParsedMove[]): string {
+  console.log('[updatePgnComment] called', { moveIndex, comment });
+
+  // Split into headers and move text
+  const lines = pgn.split('\n');
+  const headerEndIndex = lines.findIndex((line, i) =>
+    i > 0 && !line.startsWith('[') && lines[i - 1]?.startsWith('[')
+  );
+  const moveTextStartIndex = headerEndIndex >= 0 ? headerEndIndex : 0;
+
+  const headers = lines.slice(0, moveTextStartIndex).join('\n');
+  let moveText = lines.slice(moveTextStartIndex).join('\n');
+
+  // Strategy: tokenize the move text and find the Nth move by counting
+  // This works regardless of whether moves are in SAN or UCI notation
+
+  // Token types: move numbers, moves (SAN or UCI), comments {}, annotations (!?), results
+  // We need to find the moveIndex-th move token and insert/replace comment after it
+
+  // Pattern to match tokens:
+  // - Move numbers: 1. or 1...
+  // - Moves: SAN (Nf3, e4, O-O, exd5) or UCI (g1f3, e2e4)
+  // - Comments: {text}
+  // - Annotations: !, ?, !!, ??, !?, ?!
+  // - Results: 1-0, 0-1, 1/2-1/2, *
+
+  const tokenRegex = /(\d+\.+)|(\{[^}]*\})|([!?]{1,2})|([a-h][1-8][a-h][1-8][qrbnQRBN]?)|([KQRBN]?[a-h]?[1-8]?x?[a-h][1-8](?:=[QRBN])?[+#]?)|([O]-[O](?:-[O])?[+#]?)|(1-0|0-1|1\/2-1\/2|\*)/g;
+
+  interface Token {
+    type: 'moveNum' | 'comment' | 'annotation' | 'move' | 'result';
+    value: string;
+    index: number;
+    length: number;
+  }
+
+  const tokens: Token[] = [];
+  let match;
+
+  while ((match = tokenRegex.exec(moveText)) !== null) {
+    const value = match[0];
+    let type: Token['type'];
+
+    if (match[1]) type = 'moveNum';
+    else if (match[2]) type = 'comment';
+    else if (match[3]) type = 'annotation';
+    else if (match[4] || match[5] || match[6]) type = 'move';
+    else if (match[7]) type = 'result';
+    else continue;
+
+    tokens.push({ type, value, index: match.index, length: value.length });
+  }
+
+  console.log('[updatePgnComment] tokenized', {
+    tokenCount: tokens.length,
+    moveTokens: tokens.filter(t => t.type === 'move').length,
+    firstFewTokens: tokens.slice(0, 10).map(t => ({ type: t.type, value: t.value }))
+  });
+
+  // Find the moveIndex-th move token
+  let moveCount = -1;
+  let targetTokenIndex = -1;
+
+  for (let i = 0; i < tokens.length; i++) {
+    if (tokens[i]?.type === 'move') {
+      moveCount++;
+      if (moveCount === moveIndex) {
+        targetTokenIndex = i;
+        break;
+      }
+    }
+  }
+
+  if (targetTokenIndex === -1) {
+    console.log('[updatePgnComment] target move not found', { moveIndex, totalMoves: moveCount + 1 });
+    return pgn;
+  }
+
+  const targetToken = tokens[targetTokenIndex];
+  if (!targetToken) {
+    console.log('[updatePgnComment] target token undefined');
+    return pgn;
+  }
+
+  console.log('[updatePgnComment] found target', { targetTokenIndex, targetToken });
+
+  // Find what comes after the move: could be annotation, comment, another move, etc.
+  let insertPosition = targetToken.index + targetToken.length;
+  let removeLength = 0;
+
+  // Check for annotation after the move
+  const nextToken = tokens[targetTokenIndex + 1];
+  if (nextToken?.type === 'annotation') {
+    insertPosition = nextToken.index + nextToken.length;
+    // Check for comment after annotation
+    const afterAnnotation = tokens[targetTokenIndex + 2];
+    if (afterAnnotation?.type === 'comment') {
+      removeLength = (afterAnnotation.index + afterAnnotation.length) - insertPosition;
+    }
+  } else if (nextToken?.type === 'comment') {
+    // Comment directly after move - replace it
+    removeLength = (nextToken.index + nextToken.length) - insertPosition;
+  }
+
+  // Build the new comment part
+  const commentPart = comment ? ` {${comment}}` : '';
+
+  // Reconstruct the move text
+  const before = moveText.substring(0, insertPosition);
+  const after = moveText.substring(insertPosition + removeLength);
+  moveText = before + commentPart + after;
+
+  console.log('[updatePgnComment] done', { insertPosition, removeLength, commentPart });
+
+  return headers ? `${headers}\n${moveText}` : moveText;
+}
+
+export function ChessViewer({ pgn, defaultFlipped = false, onPgnChange }: ChessViewerProps) {
   const { chessConfig } = useUI();
   const [currentIndex, setCurrentIndex] = useState(-1); // -1 = starting position
   const [moves, setMoves] = useState<ParsedMove[]>([]);
@@ -280,6 +484,80 @@ export function ChessViewer({ pgn, defaultFlipped = false }: ChessViewerProps) {
   const goPrev = useCallback(() => goToMove(currentIndex - 1), [currentIndex, goToMove]);
   const goNext = useCallback(() => goToMove(currentIndex + 1), [currentIndex, goToMove]);
   const goLast = useCallback(() => goToMove(moves.length - 1), [moves.length, goToMove]);
+
+  // Handle move annotation
+  const handleAnnotateMove = useCallback((moveIndex: number, nag: NAG | null) => {
+    if (!onPgnChange) return;
+
+    // Update the PGN with the new annotation
+    const newPgn = updatePgnAnnotation(pgn, moveIndex, nag, moves);
+
+    // Update local moves state immediately for responsive UI
+    setMoves(prevMoves => {
+      const newMoves = [...prevMoves];
+      const move = newMoves[moveIndex];
+      if (move) {
+        // Remove existing move quality NAGs (1-6)
+        const otherNags = move.nags?.filter(n => n < 1 || n > 6) || [];
+        const newNags = nag ? [...otherNags, nag] : (otherNags.length > 0 ? otherNags : undefined);
+        // Create new move object, conditionally including nags
+        const updatedMove: ParsedMove = {
+          san: move.san,
+          from: move.from,
+          to: move.to,
+          piece: move.piece,
+          color: move.color,
+        };
+        if (move.captured) updatedMove.captured = move.captured;
+        if (move.promotion) updatedMove.promotion = move.promotion;
+        if (newNags) updatedMove.nags = newNags;
+        if (move.comment) updatedMove.comment = move.comment;
+        newMoves[moveIndex] = updatedMove;
+      }
+      return newMoves;
+    });
+
+    // Notify parent of PGN change
+    onPgnChange(newPgn);
+  }, [pgn, moves, onPgnChange]);
+
+  // Handle move comment
+  const handleCommentMove = useCallback((moveIndex: number, comment: string) => {
+    console.log('[ChessViewer] handleCommentMove called', { moveIndex, comment, hasOnPgnChange: !!onPgnChange });
+    if (!onPgnChange) {
+      console.log('[ChessViewer] onPgnChange is undefined, returning early');
+      return;
+    }
+
+    // Update the PGN with the new comment
+    const newPgn = updatePgnComment(pgn, moveIndex, comment, moves);
+    console.log('[ChessViewer] updatePgnComment result', { original: pgn.substring(0, 100), new: newPgn.substring(0, 100), changed: pgn !== newPgn });
+
+    // Update local moves state immediately for responsive UI
+    setMoves(prevMoves => {
+      const newMoves = [...prevMoves];
+      const move = newMoves[moveIndex];
+      if (move) {
+        // Create new move object, conditionally including comment
+        const updatedMove: ParsedMove = {
+          san: move.san,
+          from: move.from,
+          to: move.to,
+          piece: move.piece,
+          color: move.color,
+        };
+        if (move.captured) updatedMove.captured = move.captured;
+        if (move.promotion) updatedMove.promotion = move.promotion;
+        if (move.nags) updatedMove.nags = move.nags;
+        if (comment) updatedMove.comment = comment;
+        newMoves[moveIndex] = updatedMove;
+      }
+      return newMoves;
+    });
+
+    // Notify parent of PGN change
+    onPgnChange(newPgn);
+  }, [pgn, moves, onPgnChange]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -469,6 +747,8 @@ export function ChessViewer({ pgn, defaultFlipped = false }: ChessViewerProps) {
           moves={moves}
           currentIndex={currentIndex}
           onMoveClick={goToMove}
+          onAnnotateMove={onPgnChange ? handleAnnotateMove : undefined}
+          onCommentMove={onPgnChange ? handleCommentMove : undefined}
         />
       )}
     </div>

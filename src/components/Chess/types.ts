@@ -49,6 +49,7 @@ export interface ChessPositionProps {
 export interface ChessViewerProps {
   pgn: string;
   defaultFlipped?: boolean;  // Start with board flipped (black at bottom)
+  onPgnChange?: ((newPgn: string) => void) | undefined;  // Callback when PGN is modified (e.g., annotation added)
 }
 
 // Numeric Annotation Glyphs (NAGs) for move quality
@@ -108,6 +109,8 @@ export interface ChessMoveListProps {
   moves: ParsedMove[];
   currentIndex: number;
   onMoveClick: (index: number) => void;
+  onAnnotateMove?: ((moveIndex: number, nag: NAG | null) => void) | undefined;  // null to clear annotation
+  onCommentMove?: ((moveIndex: number, comment: string) => void) | undefined;  // empty string to clear comment
 }
 
 // Map piece types to unicode symbols
@@ -122,6 +125,28 @@ export const PIECE_SYMBOLS: Record<PieceType, { w: string; b: string }> = {
 
 // Starting position FEN
 export const STARTING_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+
+// Move quality NAGs for the annotation menu (ordered by quality: best to worst)
+export const MOVE_QUALITY_NAGS: NAG[] = [3, 1, 5, 6, 2, 4]; // !!, !, !?, ?!, ?, ??
+
+// Labels for annotation menu
+export const NAG_LABELS: Record<NAG, string> = {
+  1: 'Good move',
+  2: 'Mistake',
+  3: 'Brilliant move',
+  4: 'Blunder',
+  5: 'Interesting move',
+  6: 'Dubious move',
+  7: 'Forced move',
+  10: 'Equal position',
+  13: 'Unclear position',
+  14: 'White slight advantage',
+  15: 'Black slight advantage',
+  16: 'White moderate advantage',
+  17: 'Black moderate advantage',
+  18: 'White decisive advantage',
+  19: 'Black decisive advantage',
+};
 
 // Files and ranks
 export const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'] as const;

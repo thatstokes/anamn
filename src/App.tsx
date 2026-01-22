@@ -569,6 +569,45 @@ function AppContent() {
     newNoteFolderRef.current = folderPath;
   };
 
+  const handleMoveNote = async (note: Note, targetFolder: string) => {
+    try {
+      const movedNote = await window.api.notes.move(note.path, targetFolder);
+
+      // Update notes list
+      setNotes((prev) =>
+        prev.map((n) => (n.path === note.path ? movedNote : n))
+          .sort((a, b) => a.title.localeCompare(b.title))
+      );
+
+      // Update selected note if it was the moved note
+      if (selectedNote?.path === note.path) {
+        setSelectedNote(movedNote);
+        window.api.state.set({ lastOpenedNote: movedNote.path });
+      }
+
+      // Expand target folder to show moved note
+      if (targetFolder) {
+        const parts = targetFolder.split("/");
+        const foldersToExpand: string[] = [];
+        let currentPath = "";
+        for (const part of parts) {
+          currentPath = currentPath ? `${currentPath}/${part}` : part;
+          foldersToExpand.push(currentPath);
+        }
+        setExpandedFolders((prev) => {
+          const next = new Set(prev);
+          for (const folder of foldersToExpand) {
+            next.add(folder);
+          }
+          return next;
+        });
+      }
+    } catch (err) {
+      console.error("Failed to move note:", err);
+      alert(err instanceof Error ? err.message : "Failed to move note");
+    }
+  };
+
   const handleLinkClick = async (linkTitle: string) => {
     await saveNote();
     const existingNote = notes.find((n) => n.title === linkTitle);
@@ -728,6 +767,7 @@ function AppContent() {
           onContextMenu={handleContextMenu}
           onFolderContextMenu={handleFolderContextMenu}
           onChangeWorkspace={handleSelectWorkspace}
+          onMoveNote={handleMoveNote}
           onImportChess={handleImportChess}
           isImporting={isImportingChess}
           width={sidebarWidth}
@@ -775,6 +815,7 @@ function AppContent() {
           onInsertLink={insertLinkSuggestion}
           onLinkClick={handleLinkClick}
           onTagClick={handleTagClick}
+          onContentChange={setContent}
         />
         )}
         {showRightPanel && (

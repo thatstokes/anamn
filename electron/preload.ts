@@ -15,6 +15,8 @@ const api: Api = {
     delete: (path: string) => ipcRenderer.invoke("notes:delete", path),
     rename: (path: string, newTitle: string) =>
       ipcRenderer.invoke("notes:rename", path, newTitle),
+    move: (path: string, targetFolder: string) =>
+      ipcRenderer.invoke("notes:move", path, targetFolder),
     getBacklinks: (title: string) => ipcRenderer.invoke("notes:getBacklinks", title),
     search: (query: string) => ipcRenderer.invoke("notes:search", query),
     openDaily: () => ipcRenderer.invoke("notes:openDaily"),
@@ -43,6 +45,9 @@ const api: Api = {
   },
   chessImport: {
     fetchGame: (url: string) => ipcRenderer.invoke("chessImport:fetchGame", url),
+  },
+  dev: {
+    toggleDevTools: () => ipcRenderer.invoke("dev:toggleDevTools"),
   },
   watcher: {
     onFileAdded: (callback: (event: FileChangeEvent) => void) => {

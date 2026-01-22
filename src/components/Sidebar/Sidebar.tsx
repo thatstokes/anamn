@@ -18,6 +18,7 @@ interface SidebarProps {
   onContextMenu: (e: React.MouseEvent, note: Note) => void;
   onFolderContextMenu: (e: React.MouseEvent, folderPath: string) => void;
   onChangeWorkspace: () => void;
+  onMoveNote?: (note: Note, targetFolder: string) => void;
   onImportChess?: (url: string) => Promise<void>;
   isImporting?: boolean;
   width?: number;
@@ -39,6 +40,7 @@ export function Sidebar({
   onContextMenu,
   onFolderContextMenu,
   onChangeWorkspace,
+  onMoveNote,
   onImportChess,
   isImporting,
   width,
@@ -85,6 +87,7 @@ export function Sidebar({
         onToggleFolder={onToggleFolder}
         onContextMenu={onContextMenu}
         onFolderContextMenu={onFolderContextMenu}
+        onMoveNote={onMoveNote}
       />
       <button onClick={onChangeWorkspace} className="change-folder">
         Change Folder

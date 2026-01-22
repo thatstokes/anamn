@@ -1,4 +1,5 @@
 import { ipcMain } from "electron";
+import { Chess } from "chess.js";
 import type { ChessGameData } from "../../shared/types.js";
 
 // URL pattern matchers
@@ -315,15 +316,64 @@ function buildPgn(
 }
 
 /**
- * Format UCI moves into move pairs with move numbers
- * Note: This outputs UCI notation, not SAN. The chess.js library in the renderer
- * will handle the actual move parsing and display.
+ * Convert UCI moves to SAN notation by replaying the game
+ * This produces proper algebraic notation (Nf3, e4, O-O) instead of coordinate notation (g1f3, e2e4)
+ */
+function convertUciToSan(uciMoves: string[]): string[] {
+  const chess = new Chess();
+  const sanMoves: string[] = [];
+
+  for (const uci of uciMoves) {
+    if (!uci || uci.length < 4) continue;
+
+    let from = uci.slice(0, 2);
+    let to = uci.slice(2, 4);
+    const promotion = uci[4];
+
+    // Handle castling notation from Chess.com
+    // Chess.com encodes castling as king-takes-rook (e1h1, e1a1, e8h8, e8a8)
+    // but chess.js expects standard UCI (e1g1, e1c1, e8g8, e8c8)
+    if (from === "e1" && to === "h1") {
+      to = "g1"; // White kingside castling
+    } else if (from === "e1" && to === "a1") {
+      to = "c1"; // White queenside castling
+    } else if (from === "e8" && to === "h8") {
+      to = "g8"; // Black kingside castling
+    } else if (from === "e8" && to === "a8") {
+      to = "c8"; // Black queenside castling
+    }
+
+    try {
+      const moveResult = chess.move({
+        from,
+        to,
+        ...(promotion && { promotion: promotion.toLowerCase() }),
+      });
+
+      if (moveResult) {
+        sanMoves.push(moveResult.san);
+      }
+    } catch {
+      // Invalid move - stop processing
+      console.error(`Invalid UCI move: ${uci}`);
+      break;
+    }
+  }
+
+  return sanMoves;
+}
+
+/**
+ * Format SAN moves into move pairs with move numbers
  */
 function formatMovesAsSan(uciMoves: string[]): string {
+  // Convert UCI to SAN first
+  const sanMoves = convertUciToSan(uciMoves);
+
   const parts: string[] = [];
 
-  for (let i = 0; i < uciMoves.length; i++) {
-    const move = uciMoves[i];
+  for (let i = 0; i < sanMoves.length; i++) {
+    const move = sanMoves[i];
     if (!move) continue;
 
     if (i % 2 === 0) {

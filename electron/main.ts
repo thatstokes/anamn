@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu } from "electron";
+import { app, BrowserWindow, Menu, globalShortcut, ipcMain } from "electron";
 import path from "path";
 import { registerWorkspaceHandlers, initWorkspace } from "./ipc/workspace.js";
 import { registerNotesHandlers, registerFoldersHandlers } from "./ipc/notes.js";
@@ -28,6 +28,13 @@ registerThemeHandlers();
 registerChessHandlers();
 registerChessImportHandlers();
 
+let mainWindow: BrowserWindow | null = null;
+
+// IPC handler to toggle dev tools
+ipcMain.handle("dev:toggleDevTools", () => {
+  mainWindow?.webContents.toggleDevTools();
+});
+
 function createWindow() {
   const win = new BrowserWindow({
     width: 1200,
@@ -38,6 +45,13 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
     },
+  });
+
+  mainWindow = win;
+
+  // Register Ctrl+Shift+D to toggle developer tools
+  globalShortcut.register("CommandOrControl+Shift+D", () => {
+    win.webContents.toggleDevTools();
   });
 
   if (isDev) {
@@ -56,6 +70,7 @@ app.whenReady().then(async () => {
 });
 
 app.on("window-all-closed", () => {
+  globalShortcut.unregisterAll();
   if (process.platform !== "darwin") {
     app.quit();
   }

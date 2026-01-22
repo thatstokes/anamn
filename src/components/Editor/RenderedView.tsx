@@ -11,6 +11,7 @@ interface RenderedViewProps {
   renderedViewRef: React.RefObject<HTMLDivElement | null>;
   onLinkClick: (linkTitle: string) => void;
   onTagClick: (tag: string) => void;
+  onContentChange?: ((newContent: string) => void) | undefined;
 }
 
 function CodeBlock({ children, ...props }: React.HTMLAttributes<HTMLPreElement>) {
@@ -57,7 +58,64 @@ export function RenderedView({
   renderedViewRef,
   onLinkClick,
   onTagClick,
+  onContentChange,
 }: RenderedViewProps) {
+  // Create a handler for PGN changes that updates the content
+  const handlePgnChange = useCallback((originalPgn: string, newPgn: string) => {
+    console.log('[RenderedView] handlePgnChange called', {
+      hasOnContentChange: !!onContentChange,
+      originalPgnLength: originalPgn.length,
+      newPgnLength: newPgn.length,
+      pgnChanged: originalPgn !== newPgn
+    });
+    if (!onContentChange) return;
+
+    // Find the PGN code block in the content and replace it
+    // The PGN is wrapped in ```pgn ... ```
+    // Use a flexible regex that handles various whitespace
+    const pgnBlockRegex = /```pgn\s*\n([\s\S]*?)```/g;
+    let match;
+    let updatedContent = content;
+    let found = false;
+
+    // Normalize for comparison: trim and normalize line endings
+    const normalize = (s: string) => s.trim().replace(/\r\n/g, '\n').replace(/\s+/g, ' ');
+    const normalizedOriginal = normalize(originalPgn);
+
+    while ((match = pgnBlockRegex.exec(content)) !== null) {
+      const blockContent = match[1] ?? '';
+      const normalizedBlock = normalize(blockContent);
+
+      // Check if this block matches (either exact or similar enough)
+      // Use includes as a fallback for partial matches
+      if (normalizedBlock === normalizedOriginal ||
+          normalizedBlock.includes(normalizedOriginal.slice(0, 50)) ||
+          normalizedOriginal.includes(normalizedBlock.slice(0, 50))) {
+        // Found the matching block, replace it
+        const fullMatch = match[0];
+        const newBlock = '```pgn\n' + newPgn + '\n```';
+        updatedContent = content.slice(0, match.index) + newBlock + content.slice(match.index + fullMatch.length);
+        found = true;
+        break;
+      }
+    }
+
+    // If no match found but there's only one PGN block, replace it anyway
+    if (!found) {
+      const singleMatch = content.match(/```pgn\s*\n[\s\S]*?```/);
+      if (singleMatch) {
+        const newBlock = '```pgn\n' + newPgn + '\n```';
+        updatedContent = content.replace(/```pgn\s*\n[\s\S]*?```/, newBlock);
+        found = true;
+      }
+    }
+
+    console.log('[RenderedView] handlePgnChange result', { found, contentChanged: updatedContent !== content });
+    if (found && updatedContent !== content) {
+      console.log('[RenderedView] calling onContentChange');
+      onContentChange(updatedContent);
+    }
+  }, [content, onContentChange]);
   // Process tags in text to make them clickable
   // Tags must be preceded by space/tab or punctuation (not newline or start of line)
   const processTags = (text: string, keyPrefix: string): React.ReactNode[] => {
@@ -188,9 +246,13 @@ export function RenderedView({
                 );
               }
               if (match[1] === 'pgn') {
+                const originalPgn = content;
                 return (
                   <ChessErrorBoundary>
-                    <ChessViewer pgn={content} />
+                    <ChessViewer
+                      pgn={content}
+                      onPgnChange={onContentChange ? (newPgn) => handlePgnChange(originalPgn, newPgn) : undefined}
+                    />
                   </ChessErrorBoundary>
                 );
               }

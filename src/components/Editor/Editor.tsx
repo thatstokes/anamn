@@ -45,6 +45,7 @@ interface EditorProps {
   onInsertLink: (noteTitle: string) => void;
   onLinkClick: (linkTitle: string) => void;
   onTagClick: (tag: string) => void;
+  onContentChange?: ((newContent: string) => void) | undefined;
 }
 
 export function Editor({
@@ -77,6 +78,7 @@ export function Editor({
   onInsertLink,
   onLinkClick,
   onTagClick,
+  onContentChange,
 }: EditorProps) {
   if (!selectedNote) {
     return (
@@ -128,6 +130,7 @@ export function Editor({
           renderedViewRef={renderedViewRef}
           onLinkClick={onLinkClick}
           onTagClick={onTagClick}
+          onContentChange={onContentChange}
         />
       )}
     </div>

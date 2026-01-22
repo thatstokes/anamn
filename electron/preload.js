@@ -14,6 +14,7 @@ var api = {
     create: (title, folder) => import_electron.ipcRenderer.invoke("notes:create", title, folder),
     delete: (path) => import_electron.ipcRenderer.invoke("notes:delete", path),
     rename: (path, newTitle) => import_electron.ipcRenderer.invoke("notes:rename", path, newTitle),
+    move: (path, targetFolder) => import_electron.ipcRenderer.invoke("notes:move", path, targetFolder),
     getBacklinks: (title) => import_electron.ipcRenderer.invoke("notes:getBacklinks", title),
     search: (query) => import_electron.ipcRenderer.invoke("notes:search", query),
     openDaily: () => import_electron.ipcRenderer.invoke("notes:openDaily"),
@@ -40,6 +41,9 @@ var api = {
   },
   chessImport: {
     fetchGame: (url) => import_electron.ipcRenderer.invoke("chessImport:fetchGame", url)
+  },
+  dev: {
+    toggleDevTools: () => import_electron.ipcRenderer.invoke("dev:toggleDevTools")
   },
   watcher: {
     onFileAdded: (callback) => {

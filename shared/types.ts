@@ -114,6 +114,7 @@ export interface NotesApi {
   create: (title: string, folder?: string) => Promise<Note>;
   delete: (path: string) => Promise<void>;
   rename: (path: string, newTitle: string) => Promise<Note>;
+  move: (path: string, targetFolder: string) => Promise<Note>;
   getBacklinks: (title: string) => Promise<Note[]>;
   search: (query: string) => Promise<SearchResult[]>;
   openDaily: () => Promise<Note>;
@@ -161,6 +162,10 @@ export interface ChessImportApi {
   fetchGame: (url: string) => Promise<ChessGameData>;
 }
 
+export interface DevApi {
+  toggleDevTools: () => Promise<void>;
+}
+
 export interface Api {
   workspace: WorkspaceApi;
   notes: NotesApi;
@@ -171,6 +176,7 @@ export interface Api {
   theme: ThemeApi;
   chess: ChessApi;
   chessImport: ChessImportApi;
+  dev: DevApi;
 }
 
 declare global {

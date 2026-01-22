@@ -143,3 +143,26 @@
   color: var(--text-muted);
   border-bottom: 1px solid var(--border-color);
 }
+
+/* Drag and Drop States */
+.tree-note.dragging {
+  opacity: 0.5;
+}
+
+.tree-folder.drag-over {
+  background: var(--bg-hover);
+  border-left: 2px solid var(--accent-primary);
+}
+
+.file-tree.drag-over-root {
+  background: var(--bg-hover);
+  border: 1px dashed var(--accent-primary);
+}
+
+.tree-note[draggable="true"] {
+  cursor: grab;
+}
+
+.tree-note[draggable="true"]:active {
+  cursor: grabbing;
+}

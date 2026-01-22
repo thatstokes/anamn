@@ -173,6 +173,56 @@ export function registerNotesHandlers() {
   );
 
   ipcMain.handle(
+    "notes:move",
+    async (_, notePath: string, targetFolder: string): Promise<Note> => {
+      const workspace = getWorkspacePath();
+      if (!workspace) throw new Error("No workspace selected");
+
+      // Validate source path
+      const resolvedSource = path.resolve(notePath);
+      if (!resolvedSource.startsWith(workspace)) {
+        throw new Error("Path outside workspace");
+      }
+
+      // Build target path
+      const filename = path.basename(resolvedSource);
+      const targetDir = targetFolder ? path.join(workspace, targetFolder) : workspace;
+      const resolvedTargetDir = path.resolve(targetDir);
+
+      if (!resolvedTargetDir.startsWith(workspace)) {
+        throw new Error("Target path outside workspace");
+      }
+
+      const targetPath = path.join(resolvedTargetDir, filename);
+
+      // Skip if already in target folder
+      if (resolvedSource === targetPath) {
+        const title = path.basename(resolvedSource, ".md");
+        return { path: resolvedSource, title, folder: targetFolder };
+      }
+
+      // Check for duplicate at destination
+      try {
+        await fs.access(targetPath);
+        throw new Error("A note with that name already exists in the target folder");
+      } catch (err) {
+        if ((err as NodeJS.ErrnoException).code !== "ENOENT") throw err;
+      }
+
+      // Create target directory if needed
+      await fs.mkdir(resolvedTargetDir, { recursive: true });
+
+      // Move the file
+      markFileWritten(resolvedSource);
+      markFileWritten(targetPath);
+      await fs.rename(resolvedSource, targetPath);
+
+      const title = path.basename(targetPath, ".md");
+      return { path: targetPath, title, folder: targetFolder };
+    }
+  );
+
+  ipcMain.handle(
     "notes:getBacklinks",
     async (_, targetTitle: string): Promise<Note[]> => {
       const workspace = getWorkspacePath();

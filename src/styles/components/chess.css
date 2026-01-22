@@ -538,3 +538,137 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+
+/* Annotation Context Menu */
+.chess-annotation-menu {
+  position: fixed;
+  z-index: 1000;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  min-width: 180px;
+  padding: 0.25rem 0;
+}
+
+.chess-annotation-menu-header {
+  padding: 0.5rem 0.75rem;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.chess-annotation-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.chess-annotation-menu-item:hover {
+  background: var(--bg-hover);
+}
+
+.chess-annotation-menu-item.selected {
+  background: var(--bg-hover);
+}
+
+.chess-annotation-menu-item.selected::after {
+  content: "✓";
+  margin-left: auto;
+  color: var(--accent-primary);
+}
+
+.chess-annotation-menu-symbol {
+  font-weight: bold;
+  min-width: 24px;
+  text-align: center;
+}
+
+.chess-annotation-menu-label {
+  color: var(--text-secondary);
+}
+
+.chess-annotation-menu-divider {
+  height: 1px;
+  background: var(--border-light);
+  margin: 0.25rem 0;
+}
+
+.chess-annotation-menu-clear {
+  color: var(--text-muted);
+}
+
+/* Annotation menu colors */
+.chess-annotation-menu-item.nag-brilliant .chess-annotation-menu-symbol {
+  color: #1baca6;
+}
+
+.chess-annotation-menu-item.nag-good .chess-annotation-menu-symbol {
+  color: #96bc4b;
+}
+
+.chess-annotation-menu-item.nag-interesting .chess-annotation-menu-symbol {
+  color: #9bbb59;
+}
+
+.chess-annotation-menu-item.nag-dubious .chess-annotation-menu-symbol {
+  color: #c9a227;
+}
+
+.chess-annotation-menu-item.nag-mistake .chess-annotation-menu-symbol {
+  color: #e6912c;
+}
+
+.chess-annotation-menu-item.nag-blunder .chess-annotation-menu-symbol {
+  color: #ca3431;
+}
+
+/* Annotatable move indicator */
+.chess-move.annotatable {
+  cursor: context-menu;
+}
+
+
+/* Comment Edit Input */
+.chess-comment-edit {
+  width: 100%;
+}
+
+.chess-comment-input {
+  width: 100%;
+  padding: 0.5rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--accent-primary);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 2.5rem;
+}
+
+.chess-comment-input:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px rgba(var(--accent-primary-rgb), 0.2);
+}
+
+.chess-comment.editable {
+  cursor: pointer;
+}
+
+.chess-comment.editable:hover {
+  background: var(--bg-hover);
+  border-radius: var(--radius-sm);
+}
+
+/* Commentable move indicator */
+.chess-move.commentable {
+  cursor: pointer;
+}
