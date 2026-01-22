@@ -4,6 +4,7 @@ import { buildTree, type TreeNode } from "../../utils/fileTree.js";
 
 interface FileTreeProps {
   notes: Note[];
+  folders: string[];
   selectedNote: Note | null;
   expandedFolders: Set<string>;
   onSelectNote: (note: Note) => void;
@@ -112,6 +113,7 @@ function TreeNodeItem({
 
 export function FileTree({
   notes,
+  folders,
   selectedNote,
   expandedFolders,
   onSelectNote,
@@ -120,7 +122,7 @@ export function FileTree({
   onFolderContextMenu,
   onMoveNote,
 }: FileTreeProps) {
-  const tree = useMemo(() => buildTree(notes), [notes]);
+  const tree = useMemo(() => buildTree(notes, folders), [notes, folders]);
 
   // Drag and drop state
   const [draggedNote, setDraggedNote] = useState<Note | null>(null);

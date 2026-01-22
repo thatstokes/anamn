@@ -4,6 +4,8 @@ import type { Note } from "../../../shared/types.js";
 interface NotesContextValue {
   notes: Note[];
   setNotes: React.Dispatch<React.SetStateAction<Note[]>>;
+  folders: string[];
+  setFolders: React.Dispatch<React.SetStateAction<string[]>>;
   selectedNote: Note | null;
   setSelectedNote: React.Dispatch<React.SetStateAction<Note | null>>;
   backlinks: Note[];
@@ -19,6 +21,7 @@ const NotesContext = createContext<NotesContextValue | null>(null);
 
 export function NotesProvider({ children }: { children: React.ReactNode }) {
   const [notes, setNotes] = useState<Note[]>([]);
+  const [folders, setFolders] = useState<string[]>([]);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [backlinks, setBacklinks] = useState<Note[]>([]);
   const [recentNotes, setRecentNotes] = useState<string[]>([]);
@@ -46,6 +49,8 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<NotesContextValue>(() => ({
     notes,
     setNotes,
+    folders,
+    setFolders,
     selectedNote,
     setSelectedNote,
     backlinks,
@@ -56,6 +61,7 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
     selectedNoteRef,
   }), [
     notes,
+    folders,
     selectedNote,
     backlinks,
     recentNotes,

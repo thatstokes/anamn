@@ -12,10 +12,46 @@ export interface TreeNode {
  * Build a hierarchical tree structure from a flat list of notes.
  * Notes are organized by their folder paths, with folders sorted first,
  * then alphabetically within each level.
+ *
+ * @param notes - List of notes to build the tree from
+ * @param folders - Optional list of all folder paths (including empty ones)
  */
-export function buildTree(notes: Note[]): TreeNode[] {
+export function buildTree(notes: Note[], folders?: string[]): TreeNode[] {
   const root: TreeNode[] = [];
   const folderMap = new Map<string, TreeNode>();
+
+  // Helper to ensure a folder path exists in the tree
+  function ensureFolderExists(folderPath: string): void {
+    const folderParts = folderPath.split("/");
+    let currentPath = "";
+    let parent: TreeNode[] = root;
+
+    for (const part of folderParts) {
+      currentPath = currentPath ? `${currentPath}/${part}` : part;
+
+      let folder = folderMap.get(currentPath);
+      if (!folder) {
+        folder = {
+          name: part,
+          path: currentPath,
+          type: "folder",
+          children: [],
+        };
+        folderMap.set(currentPath, folder);
+        parent.push(folder);
+      }
+      parent = folder.children!;
+    }
+  }
+
+  // First, ensure all folders exist (including empty ones)
+  if (folders) {
+    for (const folderPath of folders) {
+      if (folderPath) {
+        ensureFolderExists(folderPath);
+      }
+    }
+  }
 
   // Sort notes so folders are processed in order
   const sortedNotes = [...notes].sort((a, b) => {
@@ -36,35 +72,17 @@ export function buildTree(notes: Note[]): TreeNode[] {
         note,
       });
     } else {
-      // Note in a folder - ensure all parent folders exist
-      const folderParts = note.folder.split("/");
-      let currentPath = "";
-      let parent: TreeNode[] = root;
-
-      for (const part of folderParts) {
-        currentPath = currentPath ? `${currentPath}/${part}` : part;
-
-        let folder = folderMap.get(currentPath);
-        if (!folder) {
-          folder = {
-            name: part,
-            path: currentPath,
-            type: "folder",
-            children: [],
-          };
-          folderMap.set(currentPath, folder);
-          parent.push(folder);
-        }
-        parent = folder.children!;
+      // Note in a folder - ensure folder exists and add note
+      ensureFolderExists(note.folder);
+      const folder = folderMap.get(note.folder);
+      if (folder?.children) {
+        folder.children.push({
+          name: note.title,
+          path: note.path,
+          type: "note",
+          note,
+        });
       }
-
-      // Add the note to the deepest folder
-      parent.push({
-        name: note.title,
-        path: note.path,
-        type: "note",
-        note,
-      });
     }
   }
 

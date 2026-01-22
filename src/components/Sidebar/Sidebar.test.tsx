@@ -10,6 +10,7 @@ describe("Sidebar", () => {
 
   const defaultProps = {
     notes: mockNotes,
+    folders: [] as string[],
     selectedNote: null,
     newNoteTitle: null,
     setNewNoteTitle: vi.fn(),

@@ -357,7 +357,33 @@ export function registerNotesHandlers() {
   );
 }
 
+// Recursively list all folders in a directory
+async function listFoldersRecursive(dir: string, workspace: string): Promise<string[]> {
+  const entries = await fs.readdir(dir, { withFileTypes: true });
+  const folders: string[] = [];
+
+  for (const entry of entries) {
+    if (entry.isDirectory() && !entry.name.startsWith(".")) {
+      const fullPath = path.join(dir, entry.name);
+      const relativePath = path.relative(workspace, fullPath);
+      folders.push(relativePath);
+      // Recurse into subdirectories
+      folders.push(...await listFoldersRecursive(fullPath, workspace));
+    }
+  }
+
+  return folders;
+}
+
 export function registerFoldersHandlers() {
+  ipcMain.handle("folders:list", async (): Promise<string[]> => {
+    const workspace = getWorkspacePath();
+    if (!workspace) return [];
+
+    const folders = await listFoldersRecursive(workspace, workspace);
+    return folders.sort((a, b) => a.localeCompare(b));
+  });
+
   ipcMain.handle(
     "folders:create",
     async (_, name: string, parentFolder?: string): Promise<string> => {

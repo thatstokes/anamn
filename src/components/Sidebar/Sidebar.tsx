@@ -4,6 +4,7 @@ import { FileTree } from "./FileTree.js";
 
 interface SidebarProps {
   notes: Note[];
+  folders: string[];
   selectedNote: Note | null;
   newNoteTitle: string | null;
   setNewNoteTitle: React.Dispatch<React.SetStateAction<string | null>>;
@@ -26,6 +27,7 @@ interface SidebarProps {
 
 export function Sidebar({
   notes,
+  folders,
   selectedNote,
   newNoteTitle,
   setNewNoteTitle,
@@ -81,6 +83,7 @@ export function Sidebar({
       )}
       <FileTree
         notes={notes}
+        folders={folders}
         selectedNote={selectedNote}
         expandedFolders={expandedFolders}
         onSelectNote={onSelectNote}

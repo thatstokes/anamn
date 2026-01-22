@@ -23,6 +23,7 @@ const api: Api = {
     getNotesWithTag: (tag: string) => ipcRenderer.invoke("notes:getNotesWithTag", tag),
   },
   folders: {
+    list: () => ipcRenderer.invoke("folders:list"),
     create: (name: string, parentFolder?: string) =>
       ipcRenderer.invoke("folders:create", name, parentFolder),
   },

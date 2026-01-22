@@ -122,6 +122,7 @@ export interface NotesApi {
 }
 
 export interface FoldersApi {
+  list: () => Promise<string[]>; // Returns all folder paths (including empty ones)
   create: (name: string, parentFolder?: string) => Promise<string>; // Returns the created folder path
 }
 

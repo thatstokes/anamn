@@ -73,6 +73,8 @@ function AppContent() {
   const {
     notes,
     setNotes,
+    folders,
+    setFolders,
     selectedNote,
     setSelectedNote,
     backlinks,
@@ -255,10 +257,11 @@ function AppContent() {
     window.api.workspace.get().then(setWorkspace);
   }, []);
 
-  // Load notes when workspace changes
+  // Load notes and folders when workspace changes
   useEffect(() => {
     if (workspace) {
       window.api.notes.list().then(setNotes);
+      window.api.folders.list().then(setFolders);
     }
   }, [workspace]);
 
@@ -549,9 +552,11 @@ function AppContent() {
         next.add(createdPath);
         return next;
       });
-      // Refresh notes list to show the new folder
+      // Refresh notes and folders list
       const refreshedNotes = await window.api.notes.list();
+      const refreshedFolders = await window.api.folders.list();
       setNotes(refreshedNotes);
+      setFolders(refreshedFolders);
     } catch (err) {
       console.error("Failed to create folder:", err);
       alert(err instanceof Error ? err.message : "Failed to create folder");
@@ -753,6 +758,7 @@ function AppContent() {
         />
         <Sidebar
           notes={notes}
+          folders={folders}
           selectedNote={selectedNote}
           newNoteTitle={newNoteTitle}
           setNewNoteTitle={setNewNoteTitle}
