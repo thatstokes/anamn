@@ -212,8 +212,6 @@ function escapeRegex(str: string): string {
 // Update PGN with a comment for a specific move
 // This function handles both SAN (Nf3) and UCI (g1f3) move notation
 function updatePgnComment(pgn: string, moveIndex: number, comment: string, _moves: ParsedMove[]): string {
-  console.log('[updatePgnComment] called', { moveIndex, comment });
-
   // Split into headers and move text
   const lines = pgn.split('\n');
   const headerEndIndex = lines.findIndex((line, i) =>
@@ -263,12 +261,6 @@ function updatePgnComment(pgn: string, moveIndex: number, comment: string, _move
     tokens.push({ type, value, index: match.index, length: value.length });
   }
 
-  console.log('[updatePgnComment] tokenized', {
-    tokenCount: tokens.length,
-    moveTokens: tokens.filter(t => t.type === 'move').length,
-    firstFewTokens: tokens.slice(0, 10).map(t => ({ type: t.type, value: t.value }))
-  });
-
   // Find the moveIndex-th move token
   let moveCount = -1;
   let targetTokenIndex = -1;
@@ -284,17 +276,13 @@ function updatePgnComment(pgn: string, moveIndex: number, comment: string, _move
   }
 
   if (targetTokenIndex === -1) {
-    console.log('[updatePgnComment] target move not found', { moveIndex, totalMoves: moveCount + 1 });
     return pgn;
   }
 
   const targetToken = tokens[targetTokenIndex];
   if (!targetToken) {
-    console.log('[updatePgnComment] target token undefined');
     return pgn;
   }
-
-  console.log('[updatePgnComment] found target', { targetTokenIndex, targetToken });
 
   // Find what comes after the move: could be annotation, comment, another move, etc.
   let insertPosition = targetToken.index + targetToken.length;
@@ -321,8 +309,6 @@ function updatePgnComment(pgn: string, moveIndex: number, comment: string, _move
   const before = moveText.substring(0, insertPosition);
   const after = moveText.substring(insertPosition + removeLength);
   moveText = before + commentPart + after;
-
-  console.log('[updatePgnComment] done', { insertPosition, removeLength, commentPart });
 
   return headers ? `${headers}\n${moveText}` : moveText;
 }
@@ -523,15 +509,10 @@ export function ChessViewer({ pgn, defaultFlipped = false, onPgnChange }: ChessV
 
   // Handle move comment
   const handleCommentMove = useCallback((moveIndex: number, comment: string) => {
-    console.log('[ChessViewer] handleCommentMove called', { moveIndex, comment, hasOnPgnChange: !!onPgnChange });
-    if (!onPgnChange) {
-      console.log('[ChessViewer] onPgnChange is undefined, returning early');
-      return;
-    }
+    if (!onPgnChange) return;
 
     // Update the PGN with the new comment
     const newPgn = updatePgnComment(pgn, moveIndex, comment, moves);
-    console.log('[ChessViewer] updatePgnComment result', { original: pgn.substring(0, 100), new: newPgn.substring(0, 100), changed: pgn !== newPgn });
 
     // Update local moves state immediately for responsive UI
     setMoves(prevMoves => {

@@ -62,12 +62,6 @@ export function RenderedView({
 }: RenderedViewProps) {
   // Create a handler for PGN changes that updates the content
   const handlePgnChange = useCallback((originalPgn: string, newPgn: string) => {
-    console.log('[RenderedView] handlePgnChange called', {
-      hasOnContentChange: !!onContentChange,
-      originalPgnLength: originalPgn.length,
-      newPgnLength: newPgn.length,
-      pgnChanged: originalPgn !== newPgn
-    });
     if (!onContentChange) return;
 
     // Find the PGN code block in the content and replace it
@@ -110,9 +104,7 @@ export function RenderedView({
       }
     }
 
-    console.log('[RenderedView] handlePgnChange result', { found, contentChanged: updatedContent !== content });
     if (found && updatedContent !== content) {
-      console.log('[RenderedView] calling onContentChange');
       onContentChange(updatedContent);
     }
   }, [content, onContentChange]);
